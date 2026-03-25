@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Journal — Koboku AI Creative Studio</title>
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #F4F4F2;
+            --text-color: #0A0A0A;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            -webkit-font-smoothing: antialiased;
+        }
+        .text-huge {
+            font-size: clamp(4rem, 9vw, 12rem);
+            line-height: 0.85;
+            letter-spacing: -0.04em;
+        }
+        .text-outline {
+            color: transparent;
+            -webkit-text-stroke: 2px var(--text-color);
+        }
+        .img-zoom-container { overflow: hidden; }
+        .img-zoom { transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+        .img-zoom-container:hover .img-zoom { transform: scale(1.05); }
+
+        .post-item {
+            opacity: 0;
+            transform: translateY(16px);
+            animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes fadeUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .tag {
+            display: inline-block;
+            padding: 2px 10px;
+            border: 1px solid #D1D5DB;
+            font-size: 10px;
+            font-family: monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #6B7280;
+        }
+    </style>
+</head>
+<body class="w-full min-h-screen flex flex-col selection:bg-black selection:text-[#F4F4F2]">
+
+    <!-- NAV -->
+    <nav class="fixed top-0 w-full z-50 flex justify-between items-start px-6 py-6 mix-blend-difference text-[#F4F4F2] pointer-events-none">
+        <a href="index.html" class="font-bold text-xl tracking-tighter uppercase pointer-events-auto cursor-pointer">Koboku</a>
+        <div class="hidden md:flex space-x-8 text-sm font-medium uppercase tracking-wide pointer-events-auto">
+            <a href="portfolio.html" class="hover:opacity-50 transition-opacity">Work</a>
+            <a href="about.html" class="hover:opacity-50 transition-opacity">Studio</a>
+            <a href="index.html#services" class="hover:opacity-50 transition-opacity">Services</a>
+            <a href="index.html#founders" class="hover:opacity-50 transition-opacity">Founders</a>
+            <a href="blog.html" class="hover:opacity-50 transition-opacity">Journal</a>
+        </div>
+        <div class="text-sm font-medium uppercase tracking-wide pointer-events-auto">
+            <a href="index.html#contact" class="hover:opacity-50 transition-opacity">Contact</a>
+        </div>
+    </nav>
+
+    <!-- HEADER -->
+    <header class="w-full pt-40 pb-16 px-6">
+        <div class="border-b border-black/20 pb-6 mb-12 flex justify-between items-end">
+            <span class="text-xs font-mono uppercase tracking-widest text-gray-500">The Journal</span>
+            <span class="text-xs font-mono uppercase tracking-widest text-gray-500">Thoughts & Perspectives</span>
+        </div>
+        <h1 class="text-huge font-bold uppercase mb-8">
+            Field<br>
+            <span class="text-outline">Notes.</span>
+        </h1>
+        <p class="text-xl md:text-2xl font-medium max-w-2xl leading-tight tracking-tight text-gray-500 mt-8">
+            Dispatches on AI creative direction, visual strategy, and what it means to build brand worlds at speed.
+        </p>
+    </header>
+
+    <!-- FEATURED POST -->
+    <section class="px-6 pb-16">
+        <div class="post-item group cursor-pointer" style="animation-delay:0.05s">
+            <div class="w-full h-[55vh] img-zoom-container relative bg-gray-200 mb-8">
+                <img src="https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?q=80&w=2574&auto=format&fit=crop" alt="Featured post" class="w-full h-full object-cover img-zoom grayscale group-hover:grayscale-0 transition-all duration-700">
+                <div class="absolute top-6 left-6">
+                    <span class="tag bg-[#F4F4F2]">Featured</span>
+                </div>
+            </div>
+            <div class="flex flex-col md:flex-row justify-between items-start gap-6">
+                <div class="max-w-2xl">
+                    <div class="flex gap-4 mb-4">
+                        <span class="tag">AI Direction</span>
+                        <span class="tag">Strategy</span>
+                    </div>
+                    <h2 class="text-3xl md:text-5xl font-bold tracking-tight leading-tight mb-4 group-hover:translate-x-2 transition-transform">
+                        Why Every Brand Will Have an AI Creative Director by 2027
+                    </h2>
+                    <p class="text-gray-500 text-lg leading-relaxed">
+                        The shift isn't about replacing human creativity — it's about multiplying it. We've spent the last year building the workflows, and here's what we've learned about where this is all heading.
+                    </p>
+                </div>
+                <div class="text-right text-sm font-mono text-gray-400 whitespace-nowrap pt-2">
+                    <div>March 2025</div>
+                    <div class="mt-1">8 min read</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- POST LIST -->
+    <section class="px-6 pb-32">
+        <div class="border-t border-black pt-4 mb-12">
+            <span class="text-xs font-mono uppercase tracking-widest text-gray-500">All Posts</span>
+        </div>
+
+        <div class="space-y-0">
+
+            <!-- Post 2 -->
+            <div class="post-item group border-t border-black/10 py-10 cursor-pointer flex flex-col md:flex-row gap-8 items-start" style="animation-delay:0.1s">
+                <div class="w-full md:w-64 aspect-[4/3] img-zoom-container flex-shrink-0">
+                    <img src="https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=2874&auto=format&fit=crop" alt="Post 2" class="w-full h-full object-cover img-zoom grayscale group-hover:grayscale-0 transition-all duration-700">
+                </div>
+                <div class="flex-1">
+                    <div class="flex gap-3 mb-3">
+                        <span class="tag">Workflow</span>
+                        <span class="tag">Production</span>
+                    </div>
+                    <h3 class="text-2xl md:text-3xl font-bold tracking-tight mb-3 group-hover:translate-x-2 transition-transform">From Brief to 40+ Assets in Days: Our Campaign Process</h3>
+                    <p class="text-gray-500 leading-relaxed max-w-xl">A detailed look at how we ran a full catalog photoshoot for Auren Collection — from the strategy session to the final delivery folder. No fluff, just the actual process.</p>
+                    <div class="mt-4 text-xs font-mono text-gray-400">February 2025 — 6 min read</div>
+                </div>
+            </div>
+
+            <!-- Post 3 -->
+            <div class="post-item group border-t border-black/10 py-10 cursor-pointer flex flex-col md:flex-row gap-8 items-start" style="animation-delay:0.15s">
+                <div class="w-full md:w-64 aspect-[4/3] img-zoom-container flex-shrink-0">
+                    <img src="https://images.unsplash.com/photo-1604871000636-074fa5117945?q=80&w=2787&auto=format&fit=crop" alt="Post 3" class="w-full h-full object-cover img-zoom grayscale group-hover:grayscale-0 transition-all duration-700">
+                </div>
+                <div class="flex-1">
+                    <div class="flex gap-3 mb-3">
+                        <span class="tag">Brand</span>
+                        <span class="tag">Identity</span>
+                    </div>
+                    <h3 class="text-2xl md:text-3xl font-bold tracking-tight mb-3 group-hover:translate-x-2 transition-transform">What Makes an AI-Generated Image Feel Luxury?</h3>
+                    <p class="text-gray-500 leading-relaxed max-w-xl">The technical answer is easy. The strategic answer is harder. We break down the visual codes that separate premium AI output from generic content.</p>
+                    <div class="mt-4 text-xs font-mono text-gray-400">January 2025 — 5 min read</div>
+                </div>
+            </div>
+
+            <!-- Post 4 -->
+            <div class="post-item group border-t border-black/10 py-10 cursor-pointer flex flex-col md:flex-row gap-8 items-start" style="animation-delay:0.2s">
+                <div class="w-full md:w-64 aspect-[4/3] img-zoom-container flex-shrink-0">
+                    <img src="https://images.unsplash.com/photo-1614729939124-032f0b56c9ce?q=80&w=2670&auto=format&fit=crop" alt="Post 4" class="w-full h-full object-cover img-zoom grayscale group-hover:grayscale-0 transition-all duration-700">
+                </div>
+                <div class="flex-1">
+                    <div class="flex gap-3 mb-3">
+                        <span class="tag">Kendo</span>
+                        <span class="tag">Philosophy</span>
+                    </div>
+                    <h3 class="text-2xl md:text-3xl font-bold tracking-tight mb-3 group-hover:translate-x-2 transition-transform">The Sword and the Studio: How Martial Arts Shapes Our Creative Approach</h3>
+                    <p class="text-gray-500 leading-relaxed max-w-xl">Discipline, repetition, precision under pressure. The lessons of kendo apply directly to how we run projects and how we think about visual direction.</p>
+                    <div class="mt-4 text-xs font-mono text-gray-400">December 2024 — 7 min read</div>
+                </div>
+            </div>
+
+            <!-- Post 5 -->
+            <div class="post-item group border-t border-b border-black/10 py-10 cursor-pointer flex flex-col md:flex-row gap-8 items-start" style="animation-delay:0.25s">
+                <div class="w-full md:w-64 aspect-[4/3] img-zoom-container flex-shrink-0">
+                    <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop" alt="Post 5" class="w-full h-full object-cover img-zoom grayscale group-hover:grayscale-0 transition-all duration-700">
+                </div>
+                <div class="flex-1">
+                    <div class="flex gap-3 mb-3">
+                        <span class="tag">Industry</span>
+                        <span class="tag">Opinion</span>
+                    </div>
+                    <h3 class="text-2xl md:text-3xl font-bold tracking-tight mb-3 group-hover:translate-x-2 transition-transform">The Creative Agency Is Not Dead — It's Just Changing Shape</h3>
+                    <p class="text-gray-500 leading-relaxed max-w-xl">Everyone is saying agencies are finished. We disagree. Here's what we think actually survives, and what should be left behind.</p>
+                    <div class="mt-4 text-xs font-mono text-gray-400">November 2024 — 4 min read</div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- NEWSLETTER -->
+    <section class="bg-[#0A0A0A] text-[#F4F4F2] px-6 py-24">
+        <div class="border-t border-[#F4F4F2]/20 pt-6 mb-12">
+            <span class="text-xs font-mono uppercase tracking-widest text-gray-500">Stay in the loop</span>
+        </div>
+        <div class="max-w-2xl">
+            <h2 class="text-4xl md:text-5xl font-bold tracking-tighter uppercase mb-6">The Journal,<br>in your inbox.</h2>
+            <p class="text-gray-400 text-lg mb-10 leading-relaxed">New posts on AI creative direction, brand strategy, and the studio's perspective — when we have something worth saying. No noise.</p>
+            <div class="flex flex-col md:flex-row gap-4">
+                <input type="email" placeholder="your@email.com" class="flex-1 bg-transparent border border-[#F4F4F2]/30 px-5 py-4 text-sm font-mono text-[#F4F4F2] placeholder-gray-600 focus:outline-none focus:border-[#F4F4F2]">
+                <button class="border border-[#F4F4F2] px-8 py-4 text-sm font-mono uppercase tracking-widest hover:bg-[#F4F4F2] hover:text-[#0A0A0A] transition-colors whitespace-nowrap">Subscribe</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="w-full bg-[#F4F4F2] border-t border-black/20 px-6 flex flex-col md:flex-row justify-between items-start md:items-center text-xs font-mono uppercase text-gray-500 gap-4 py-6">
+        <div>©2025 Koboku Studio. All rights reserved.</div>
+        <div>AI Creative Direction — Florence, Italy</div>
+        <div class="flex space-x-6">
+            <a href="#" class="hover:text-black transition-colors">Instagram</a>
+            <a href="#" class="hover:text-black transition-colors">LinkedIn</a>
+        </div>
+    </footer>
+
+</body>
+</html>

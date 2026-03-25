@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About — Koboku AI Creative Studio</title>
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #F4F4F2;
+            --text-color: #0A0A0A;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            -webkit-font-smoothing: antialiased;
+        }
+        .text-huge {
+            font-size: clamp(4rem, 9vw, 12rem);
+            line-height: 0.85;
+            letter-spacing: -0.04em;
+        }
+        .text-massive {
+            font-size: clamp(6rem, 18vw, 24rem);
+            line-height: 0.75;
+            letter-spacing: -0.05em;
+        }
+        .text-outline {
+            color: transparent;
+            -webkit-text-stroke: 2px var(--text-color);
+        }
+        .dark-section .text-outline {
+            -webkit-text-stroke: 2px #F4F4F2;
+        }
+        .img-zoom-container { overflow: hidden; }
+        .img-zoom { transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+        .img-zoom-container:hover .img-zoom { transform: scale(1.05); }
+
+        .fade-in {
+            opacity: 0;
+            transform: translateY(24px);
+            animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes fadeUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="w-full min-h-screen flex flex-col selection:bg-black selection:text-[#F4F4F2]">
+
+    <!-- NAV -->
+    <nav class="fixed top-0 w-full z-50 flex justify-between items-start px-6 py-6 mix-blend-difference text-[#F4F4F2] pointer-events-none">
+        <a href="index.html" class="font-bold text-xl tracking-tighter uppercase pointer-events-auto cursor-pointer">Koboku</a>
+        <div class="hidden md:flex space-x-8 text-sm font-medium uppercase tracking-wide pointer-events-auto">
+            <a href="portfolio.html" class="hover:opacity-50 transition-opacity">Work</a>
+            <a href="about.html" class="hover:opacity-50 transition-opacity">Studio</a>
+            <a href="index.html#services" class="hover:opacity-50 transition-opacity">Services</a>
+            <a href="index.html#founders" class="hover:opacity-50 transition-opacity">Founders</a>
+            <a href="blog.html" class="hover:opacity-50 transition-opacity">Journal</a>
+        </div>
+        <div class="text-sm font-medium uppercase tracking-wide pointer-events-auto">
+            <a href="index.html#contact" class="hover:opacity-50 transition-opacity">Contact</a>
+        </div>
+    </nav>
+
+    <!-- HEADER -->
+    <header class="w-full pt-40 pb-16 px-6">
+        <div class="border-b border-black/20 pb-6 mb-12 flex justify-between items-end">
+            <span class="text-xs font-mono uppercase tracking-widest text-gray-500">The Studio</span>
+            <span class="text-xs font-mono uppercase tracking-widest text-gray-500">EST. 2025</span>
+        </div>
+        <h1 class="text-huge font-bold uppercase mb-8 fade-in" style="animation-delay:0.05s">
+            We Are<br>
+            <span class="text-outline">Koboku.</span>
+        </h1>
+        <div class="mt-16 max-w-3xl fade-in" style="animation-delay:0.15s">
+            <p class="text-2xl md:text-3xl font-medium leading-tight tracking-tight">
+                An AI Creative Direction studio founded on discipline, strategy, and cinematic taste — operating at the speed and cost traditional agencies cannot match.
+            </p>
+        </div>
+    </header>
+
+    <!-- PHILOSOPHY -->
+    <section class="w-full px-6 py-24 bg-[#0A0A0A] text-[#F4F4F2] dark-section">
+        <div class="border-t border-[#F4F4F2]/20 pt-6 mb-16 flex justify-between items-center">
+            <span class="text-xs font-mono uppercase tracking-widest text-gray-500">Philosophy</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-16 max-w-7xl">
+            <div>
+                <h2 class="text-4xl md:text-6xl font-bold tracking-tighter leading-[0.9] mb-10 uppercase">
+                    The Name.<br>
+                    <span class="text-outline">The Philosophy.</span>
+                </h2>
+                <p class="text-lg text-gray-400 leading-relaxed max-w-lg">
+                    Koboku — 枯木 — is one of the most celebrated ink paintings by Miyamoto Musashi, the undefeated swordsman who sought mastery through art as much as combat. A withered tree rendered with absolute precision. Economy of form. Intentionality in every stroke.
+                </p>
+                <p class="text-lg text-gray-400 leading-relaxed max-w-lg mt-6">
+                    That is how we approach AI creative direction: disciplined vision, no wasted motion, results that land. We are not prompt engineers. We are strategic multipliers — directors who understand that the brief is only the beginning.
+                </p>
+            </div>
+            <div class="flex flex-col justify-end">
+                <div class="grid grid-cols-2 gap-px bg-[#F4F4F2]/10">
+                    <div class="bg-[#0A0A0A] p-8">
+                        <div class="text-5xl font-bold tracking-tight mb-2">10×</div>
+                        <div class="text-sm font-mono uppercase text-gray-500">Creative Output<br>vs. Traditional</div>
+                    </div>
+                    <div class="bg-[#0A0A0A] p-8">
+                        <div class="text-5xl font-bold tracking-tight mb-2">3</div>
+                        <div class="text-sm font-mono uppercase text-gray-500">Continents.<br>One Studio.</div>
+                    </div>
+                    <div class="bg-[#0A0A0A] p-8">
+                        <div class="text-5xl font-bold tracking-tight mb-2">AI +</div>
+                        <div class="text-sm font-mono uppercase text-gray-500">Human Direction<br>Always</div>
+                    </div>
+                    <div class="bg-[#0A0A0A] p-8">
+                        <div class="text-5xl font-bold tracking-tight mb-2">∞</div>
+                        <div class="text-sm font-mono uppercase text-gray-500">Creative<br>Possibilities</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- HOW WE WORK -->
+    <section class="w-full px-6 py-24">
+        <div class="border-t border-black pt-4 mb-16">
+            <span class="text-xs font-mono uppercase tracking-widest text-gray-500">How We Work</span>
+        </div>
+
+        <div class="space-y-0 max-w-5xl">
+            <div class="border-t border-black/20 py-10 flex flex-col md:flex-row gap-8 md:gap-24">
+                <div class="text-xs font-mono text-gray-400 pt-1 min-w-[2rem]">01</div>
+                <div>
+                    <h3 class="text-2xl md:text-3xl font-bold tracking-tight mb-4">Brief & Strategy</h3>
+                    <p class="text-gray-500 leading-relaxed max-w-xl">Every project starts with a deep strategic conversation. We learn your brand world, your audience, your ambitions. The creative direction emerges from understanding, not guesswork.</p>
+                </div>
+            </div>
+            <div class="border-t border-black/20 py-10 flex flex-col md:flex-row gap-8 md:gap-24">
+                <div class="text-xs font-mono text-gray-400 pt-1 min-w-[2rem]">02</div>
+                <div>
+                    <h3 class="text-2xl md:text-3xl font-bold tracking-tight mb-4">Creative Direction</h3>
+                    <p class="text-gray-500 leading-relaxed max-w-xl">We develop the visual concept — mood, references, aesthetic framework. This is where human taste and strategic vision define the entire output. AI is the tool; we are the directors.</p>
+                </div>
+            </div>
+            <div class="border-t border-black/20 py-10 flex flex-col md:flex-row gap-8 md:gap-24">
+                <div class="text-xs font-mono text-gray-400 pt-1 min-w-[2rem]">03</div>
+                <div>
+                    <h3 class="text-2xl md:text-3xl font-bold tracking-tight mb-4">Production at Speed</h3>
+                    <p class="text-gray-500 leading-relaxed max-w-xl">Using the most advanced generative tools — image, video, motion — we produce at a pace and scale traditional production cannot approach. Days, not weeks. Assets, not mockups.</p>
+                </div>
+            </div>
+            <div class="border-t border-t-black/20 border-b border-black/20 py-10 flex flex-col md:flex-row gap-8 md:gap-24">
+                <div class="text-xs font-mono text-gray-400 pt-1 min-w-[2rem]">04</div>
+                <div>
+                    <h3 class="text-2xl md:text-3xl font-bold tracking-tight mb-4">Delivery & Iteration</h3>
+                    <p class="text-gray-500 leading-relaxed max-w-xl">Final assets formatted for every channel and context. We iterate fast, refine precisely, and deliver work that performs — not just work that looks good in a deck.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOUNDERS -->
+    <section class="w-full px-6 py-24 bg-[#0A0A0A] text-[#F4F4F2]">
+        <div class="border-t border-[#F4F4F2]/20 pt-4 mb-16">
+            <span class="text-xs font-mono uppercase tracking-widest text-gray-500">The Founders</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24 max-w-6xl">
+            <div class="group">
+                <div class="w-full aspect-[3/4] bg-gray-800 img-zoom-container mb-8 overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=2787&auto=format&fit=crop" alt="Simone Niba" class="w-full h-full object-cover img-zoom grayscale group-hover:grayscale-0">
+                </div>
+                <h3 class="text-3xl font-bold tracking-tight mb-1">Simone Niba</h3>
+                <p class="text-sm font-mono uppercase text-gray-500 mb-6">Co-Founder — Creative Director</p>
+                <p class="text-gray-400 leading-relaxed">
+                    Born and raised in Florence. Graduate in Business Administration from the University of Florence. World-class kendo athlete and current member of the Italian National Team, training to compete in the 2027 Kendo World Championship in Japan.
+                </p>
+                <p class="text-gray-400 leading-relaxed mt-4">
+                    Simone has developed his creative eye through music where he recorded two singles in Los Angeles produced by the Grammy Award Winner Sam Homaee. For his music videos he partnered with Giovanni de Chiara, the youngest cinematographer in the italian film industry, where he experienced how a cinema set worked. Modeling constantly with high end fashion brands like Piero Tucci and Gino Lopez he developed his own strategic vision and creative direction.
+                </p>
+            </div>
+
+            <div class="group">
+                <div class="w-full aspect-[3/4] bg-gray-800 img-zoom-container mb-8 overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=2787&auto=format&fit=crop" alt="Bruno Di Felice" class="w-full h-full object-cover img-zoom grayscale group-hover:grayscale-0">
+                </div>
+                <h3 class="text-3xl font-bold tracking-tight mb-1">Bruno Di Felice</h3>
+                <p class="text-sm font-mono uppercase text-gray-500 mb-6">Co-Founder — Technology & Strategy</p>
+                <p class="text-gray-400 leading-relaxed">
+                    Also a kendo practitioner and Florence native. Bruno brings a sharp advertising background and deep technical fluency to the studio — the architecture behind the creative. He architects the systems, tools, and workflows that make Koboku's output scalable.
+                </p>
+                <p class="text-gray-400 leading-relaxed mt-4">
+                    Simone and Bruno have been friends and training partners since kindergarten. That shared foundation — discipline, trust, and a competitive drive to win — is at the core of how Koboku operates.
+                </p>
+            </div>
+        </div>
+
+        <div class="mt-24 border-t border-[#F4F4F2]/20 pt-16">
+            <p class="text-3xl md:text-5xl font-bold tracking-tight leading-tight max-w-4xl" style="color:transparent; -webkit-text-stroke: 2px #F4F4F2;">
+                "The way of the sword and the way of art are one." — Miyamoto Musashi
+            </p>
+        </div>
+    </section>
+
+    <!-- VALUES -->
+    <section class="w-full px-6 py-24">
+        <div class="border-t border-black pt-4 mb-16">
+            <span class="text-xs font-mono uppercase tracking-widest text-gray-500">What We Stand For</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-6xl">
+            <div>
+                <div class="text-4xl font-bold mb-4">Discipline</div>
+                <p class="text-gray-500 leading-relaxed">No wasted motion. Every creative decision serves a strategic purpose. We bring the rigor of martial arts training to every brief.</p>
+            </div>
+            <div>
+                <div class="text-4xl font-bold mb-4">Speed</div>
+                <p class="text-gray-500 leading-relaxed">What takes agencies weeks, we deliver in days. AI tools combined with tight creative direction compress timelines without sacrificing quality.</p>
+            </div>
+            <div>
+                <div class="text-4xl font-bold mb-4">Taste</div>
+                <p class="text-gray-500 leading-relaxed">AI is only as good as the human directing it. We bring years of cultural immersion, artistic training, and strategic thinking to every prompt and every pixel.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="w-full bg-[#F4F4F2] border-t border-black/20 px-6 flex flex-col md:flex-row justify-between items-start md:items-center text-xs font-mono uppercase text-gray-500 gap-4 py-6">
+        <div>©2025 Koboku Studio. All rights reserved.</div>
+        <div>AI Creative Direction — Florence, Italy</div>
+        <div class="flex space-x-6">
+            <a href="#" class="hover:text-black transition-colors">Instagram</a>
+            <a href="#" class="hover:text-black transition-colors">LinkedIn</a>
+        </div>
+    </footer>
+
+</body>
+</html>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio — Koboku AI Creative Studio</title>
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #F4F4F2;
+            --text-color: #0A0A0A;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            -webkit-font-smoothing: antialiased;
+        }
+        .text-huge {
+            font-size: clamp(4rem, 9vw, 12rem);
+            line-height: 0.85;
+            letter-spacing: -0.04em;
+        }
+        .text-massive {
+            font-size: clamp(6rem, 18vw, 24rem);
+            line-height: 0.75;
+            letter-spacing: -0.05em;
+        }
+        .text-outline {
+            color: transparent;
+            -webkit-text-stroke: 2px var(--text-color);
+        }
+        .img-zoom-container { overflow: hidden; }
+        .img-zoom { transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+        .img-zoom-container:hover .img-zoom { transform: scale(1.05); }
+
+        .filter-btn { transition: all 0.2s ease; }
+        .filter-btn.active { background: #0A0A0A; color: #F4F4F2; }
+
+        .portfolio-item {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes fadeUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="w-full min-h-screen flex flex-col selection:bg-black selection:text-[#F4F4F2]">
+
+    <!-- NAV -->
+    <nav class="fixed top-0 w-full z-50 flex justify-between items-start px-6 py-6 mix-blend-difference text-[#F4F4F2] pointer-events-none">
+        <a href="index.html" class="font-bold text-xl tracking-tighter uppercase pointer-events-auto cursor-pointer">Koboku</a>
+        <div class="hidden md:flex space-x-8 text-sm font-medium uppercase tracking-wide pointer-events-auto">
+            <a href="portfolio.html" class="hover:opacity-50 transition-opacity">Work</a>
+            <a href="about.html" class="hover:opacity-50 transition-opacity">Studio</a>
+            <a href="index.html#services" class="hover:opacity-50 transition-opacity">Services</a>
+            <a href="index.html#founders" class="hover:opacity-50 transition-opacity">Founders</a>
+            <a href="blog.html" class="hover:opacity-50 transition-opacity">Journal</a>
+        </div>
+        <div class="text-sm font-medium uppercase tracking-wide pointer-events-auto">
+            <a href="index.html#contact" class="hover:opacity-50 transition-opacity">Contact</a>
+        </div>
+    </nav>
+
+    <!-- HEADER -->
+    <header class="w-full pt-40 pb-16 px-6">
+        <div class="border-b border-black/20 pb-6 mb-12 flex justify-between items-end">
+            <span class="text-xs font-mono uppercase tracking-widest text-gray-500">Selected Work</span>
+            <span class="text-xs font-mono uppercase tracking-widest text-gray-500">2024 — 2025</span>
+        </div>
+        <h1 class="text-huge font-bold uppercase mb-8">
+            Our<br>
+            <span class="text-outline">Portfolio.</span>
+        </h1>
+        <p class="text-xl md:text-2xl font-medium max-w-2xl leading-tight tracking-tight text-gray-500 mt-8">
+            Every project is a world built from scratch — strategic, cinematic, and made to perform.
+        </p>
+    </header>
+
+    <!-- FILTER BAR -->
+    <section class="px-6 pb-12">
+        <div class="flex flex-wrap gap-3" id="filters">
+            <button class="filter-btn active px-5 py-2 border border-black text-xs font-mono uppercase tracking-widest" data-filter="all">All</button>
+            <button class="filter-btn px-5 py-2 border border-black text-xs font-mono uppercase tracking-widest" data-filter="fashion">Fashion</button>
+            <button class="filter-btn px-5 py-2 border border-black text-xs font-mono uppercase tracking-widest" data-filter="beauty">Beauty</button>
+            <button class="filter-btn px-5 py-2 border border-black text-xs font-mono uppercase tracking-widest" data-filter="lifestyle">Lifestyle</button>
+            <button class="filter-btn px-5 py-2 border border-black text-xs font-mono uppercase tracking-widest" data-filter="product">Product</button>
+        </div>
+    </section>
+
+    <!-- PORTFOLIO GRID -->
+    <section class="px-6 pb-32">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-black/10" id="portfolio-grid">
+
+            <!-- Item 1 — large -->
+            <div class="portfolio-item col-span-1 md:col-span-2 bg-[#F4F4F2] group cursor-pointer" data-category="fashion" style="animation-delay:0.05s">
+                <div class="w-full h-[70vh] img-zoom-container relative">
+                    <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop" alt="Campaign Vol. I" class="w-full h-full object-cover img-zoom grayscale group-hover:grayscale-0 transition-all duration-700">
+                    <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-500"></div>
+                    <div class="absolute bottom-8 left-8 text-white mix-blend-difference">
+                        <span class="text-xs font-mono uppercase tracking-widest opacity-60">Fashion — Campaign</span>
+                        <h2 class="text-4xl md:text-6xl font-bold tracking-tighter mt-1">Campaign Vol. I</h2>
+                    </div>
+                    <div class="absolute top-8 right-8 text-white mix-blend-difference text-xs font-mono uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                        View Project →
+                    </div>
+                </div>
+                <div class="p-8 border-t border-black/10 flex justify-between items-center">
+                    <div>
+                        <p class="text-sm text-gray-500 max-w-xl">A full catalog photoshoot and visual identity — concept to delivery — completed in days. 40+ final assets across formats for "Auren Collection" a Saint Moritz based Designer Outlet, replacing a 3-week traditional shoot.</p>
+                    </div>
+                    <div class="text-6xl font-light text-gray-200 ml-8">01</div>
+                </div>
+            </div>
+
+            <!-- Item 2 -->
+            <div class="portfolio-item bg-[#F4F4F2] group cursor-pointer" data-category="lifestyle" style="animation-delay:0.1s">
+                <div class="w-full aspect-[4/3] img-zoom-container relative">
+                    <img src="https://images.unsplash.com/photo-1614064641938-3bbee52942c7?q=80&w=2670&auto=format&fit=crop" alt="Product World" class="w-full h-full object-cover img-zoom grayscale group-hover:grayscale-0 transition-all duration-700">
+                    <div class="absolute bottom-6 left-6 text-white mix-blend-difference">
+                        <span class="text-xs font-mono uppercase tracking-widest opacity-60">Sports — Product</span>
+                        <h2 class="text-3xl font-bold tracking-tighter mt-1">Product World</h2>
+                    </div>
+                </div>
+                <div class="p-6 border-t border-black/10">
+                    <p class="text-sm text-gray-500">20 premium product visuals for Kendo-Zen, a luxury kendo bag brand based in Kochi Japan. Zero physical shoot. Total turnaround: 4 hours.</p>
+                    <div class="mt-4 text-xs font-mono uppercase text-gray-400">02</div>
+                </div>
+            </div>
+
+            <!-- Item 3 -->
+            <div class="portfolio-item bg-[#F4F4F2] group cursor-pointer" data-category="lifestyle" style="animation-delay:0.15s">
+                <div class="w-full aspect-[4/3] img-zoom-container relative">
+                    <img src="https://images.unsplash.com/photo-1633356122102-3fe601e157e5?q=80&w=2670&auto=format&fit=crop" alt="Brand Retainer" class="w-full h-full object-cover img-zoom grayscale group-hover:grayscale-0 transition-all duration-700">
+                    <div class="absolute bottom-6 left-6 text-white mix-blend-difference">
+                        <span class="text-xs font-mono uppercase tracking-widest opacity-60">Lifestyle — Retainer</span>
+                        <h2 class="text-3xl font-bold tracking-tighter mt-1">Brand Retainer</h2>
+                    </div>
+                </div>
+                <div class="p-6 border-t border-black/10">
+                    <p class="text-sm text-gray-500">Ongoing monthly visual content for the Florence based bespoke tailor "Flo and Flo". 30+ assets/month — photography, video, and motion — with consistent visual identity.</p>
+                    <div class="mt-4 text-xs font-mono uppercase text-gray-400">03</div>
+                </div>
+            </div>
+
+            <!-- Item 4 -->
+            <div class="portfolio-item bg-[#F4F4F2] group cursor-pointer" data-category="product" style="animation-delay:0.2s">
+                <div class="w-full aspect-[4/3] img-zoom-container relative">
+                    <img src="https://images.unsplash.com/photo-1604871000636-074fa5117945?q=80&w=2787&auto=format&fit=crop" alt="Visual Identity" class="w-full h-full object-cover img-zoom grayscale group-hover:grayscale-0 transition-all duration-700">
+                    <div class="absolute bottom-6 left-6 text-white mix-blend-difference">
+                        <span class="text-xs font-mono uppercase tracking-widest opacity-60">Product — Identity</span>
+                        <h2 class="text-3xl font-bold tracking-tighter mt-1">Visual System</h2>
+                    </div>
+                </div>
+                <div class="p-6 border-t border-black/10">
+                    <p class="text-sm text-gray-500">AI-assisted brand identity and visual strategy for a European DTC startup. Full style system delivered in one week.</p>
+                    <div class="mt-4 text-xs font-mono uppercase text-gray-400">04</div>
+                </div>
+            </div>
+
+            <!-- Item 5 -->
+            <div class="portfolio-item bg-[#F4F4F2] group cursor-pointer" data-category="fashion" style="animation-delay:0.25s">
+                <div class="w-full aspect-[4/3] img-zoom-container relative">
+                    <img src="https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=2874&auto=format&fit=crop" alt="Editorial Series" class="w-full h-full object-cover img-zoom grayscale group-hover:grayscale-0 transition-all duration-700">
+                    <div class="absolute bottom-6 left-6 text-white mix-blend-difference">
+                        <span class="text-xs font-mono uppercase tracking-widest opacity-60">Fashion — Editorial</span>
+                        <h2 class="text-3xl font-bold tracking-tighter mt-1">Editorial Series</h2>
+                    </div>
+                </div>
+                <div class="p-6 border-t border-black/10">
+                    <p class="text-sm text-gray-500">12-image editorial series for a luxury accessories label, shot and directed entirely through AI creative direction.</p>
+                    <div class="mt-4 text-xs font-mono uppercase text-gray-400">05</div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="bg-[#0A0A0A] text-[#F4F4F2] px-6 py-24 text-center">
+        <h2 class="text-4xl md:text-6xl font-bold tracking-tighter uppercase mb-6">Your project<br>next?</h2>
+        <p class="text-gray-400 text-lg max-w-xl mx-auto mb-10">We work with brands that want to move fast and invest in visuals that perform.</p>
+        <a href="index.html#contact" class="inline-block border border-[#F4F4F2] px-8 py-4 text-sm font-mono uppercase tracking-widest hover:bg-[#F4F4F2] hover:text-[#0A0A0A] transition-colors">Start a Project</a>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="w-full bg-[#F4F4F2] border-t border-black/20 pt-6 px-6 flex flex-col md:flex-row justify-between items-start md:items-center text-xs font-mono uppercase text-gray-500 gap-4 py-6">
+        <div>©2025 Koboku Studio. All rights reserved.</div>
+        <div>AI Creative Direction — Florence, Italy</div>
+        <div class="flex space-x-6">
+            <a href="#" class="hover:text-black transition-colors">Instagram</a>
+            <a href="#" class="hover:text-black transition-colors">LinkedIn</a>
+        </div>
+    </footer>
+
+    <script>
+        // Filter functionality
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const items = document.querySelectorAll('.portfolio-item');
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const filter = btn.dataset.filter;
+                items.forEach(item => {
+                    if (filter === 'all' || item.dataset.category === filter) {
+                        item.style.display = '';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
