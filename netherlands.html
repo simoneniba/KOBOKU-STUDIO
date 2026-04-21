@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Utrecht Tweedehands — Koboku × NL</title>
+    <meta name="description" content="A Koboku editorial project: a curated field-guide to the finest second-hand and vintage shops across the Netherlands.">
+
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,700;1,9..144,300;1,9..144,400&family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #EFEAE3;        /* warmer paper tone — NL editorial */
+            --bg-deep: #0A0A0A;
+            --text-color: #0A0A0A;
+            --accent: #C9462C;           /* Dutch ochre / terracotta */
+            --ink-dim: #8A867D;
+        }
+        html, body { background-color: var(--bg-color); }
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text-color);
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        .serif { font-family: 'Fraunces', serif; }
+        .serif-i { font-family: 'Fraunces', serif; font-style: italic; font-weight: 300; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+
+        .text-huge { font-size: clamp(4rem, 9vw, 12rem); line-height: 0.85; letter-spacing: -0.04em; }
+        .text-massive { font-size: clamp(6rem, 18vw, 24rem); line-height: 0.75; letter-spacing: -0.05em; }
+        .text-outline { color: transparent; -webkit-text-stroke: 1.5px var(--text-color); }
+        .dark .text-outline { -webkit-text-stroke: 1.5px var(--bg-color); }
+
+        .reveal-line { display: inline-block; overflow: hidden; vertical-align: top; }
+        .reveal-line > span { display: inline-block; transform: translateY(110%); will-change: transform; }
+
+        .img-zoom-container { overflow: hidden; }
+        .img-zoom { transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1); will-change: transform; }
+        .img-zoom-container:hover .img-zoom { transform: scale(1.05); }
+
+        /* Custom cursor */
+        .cursor-dot {
+            position: fixed; top: 0; left: 0;
+            width: 8px; height: 8px;
+            background: var(--text-color);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            mix-blend-mode: difference;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s ease, height 0.3s ease;
+            will-change: transform;
+        }
+        .cursor-dot.is-big { width: 64px; height: 64px; background: var(--bg-color); }
+        @media (hover: none) { .cursor-dot { display: none; } }
+
+        /* Grain */
+        .grain::before {
+            content: '';
+            position: fixed; inset: 0;
+            pointer-events: none;
+            z-index: 100;
+            opacity: 0.045;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+            mix-blend-mode: multiply;
+        }
+
+        /* Horizontal scrolling gallery track */
+        .horizontal-track {
+            display: flex;
+            gap: 1.5rem;
+            padding: 0 1.5rem;
+            will-change: transform;
+        }
+        .horizontal-card {
+            flex: 0 0 70vw;
+            max-width: 520px;
+            aspect-ratio: 4 / 5;
+        }
+        @media (min-width: 768px) {
+            .horizontal-card { flex: 0 0 38vw; }
+        }
+
+        /* Shop index row hover */
+        .shop-row { transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        .shop-row:hover { padding-left: 1.5rem; background: rgba(10,10,10,0.03); }
+        .shop-row .preview {
+            position: absolute;
+            right: 2rem;
+            top: 50%;
+            transform: translate(20px, -50%);
+            width: 180px;
+            height: 220px;
+            object-fit: cover;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            filter: grayscale(100%);
+            z-index: 5;
+            border-radius: 2px;
+        }
+        .shop-row:hover .preview { opacity: 1; transform: translate(0, -50%); filter: grayscale(0%); }
+        @media (max-width: 900px) {
+            .shop-row .preview { display: none; }
+        }
+
+        /* Map SVG */
+        .nl-map path { fill: none; stroke: rgba(10,10,10,0.25); stroke-width: 1; }
+        .nl-map .border { fill: rgba(10,10,10,0.04); }
+        .pin {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .pin .dot { fill: var(--text-color); transition: all 0.3s ease; }
+        .pin .ring { fill: none; stroke: var(--accent); stroke-width: 1.5; opacity: 0; transform-origin: center; }
+        .pin.is-active .dot, .pin:hover .dot { fill: var(--accent); }
+        .pin.is-active .ring, .pin:hover .ring {
+            opacity: 1;
+            animation: ringPulse 2s ease-in-out infinite;
+        }
+        @keyframes ringPulse {
+            0% { r: 6; opacity: 1; }
+            100% { r: 20; opacity: 0; }
+        }
+        .pin text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            fill: var(--text-color);
+            opacity: 0.7;
+        }
+
+        /* Ticker */
+        .ticker {
+            display: flex;
+            white-space: nowrap;
+            will-change: transform;
+        }
+        .ticker-track { display: inline-flex; padding-right: 3rem; }
+
+        /* Split-type clip for names */
+        .shop-name-wrap { overflow: hidden; display: inline-block; vertical-align: bottom; }
+    </style>
+</head>
+<body class="w-full min-h-screen grain selection:bg-black selection:text-[#EFEAE3]">
+
+    <div class="cursor-dot" id="cursor"></div>
+
+    <!-- NAV -->
+    <nav class="fixed top-0 w-full z-50 flex justify-between items-start px-6 py-6 mix-blend-difference text-[#EFEAE3] pointer-events-none">
+        <a href="index.html" class="font-bold text-xl tracking-tighter uppercase pointer-events-auto" data-cursor="big">Koboku</a>
+        <div class="hidden md:flex space-x-8 text-sm font-medium uppercase tracking-wide pointer-events-auto">
+            <a href="portfolio.html" class="hover:opacity-50 transition-opacity" data-cursor="big">Work</a>
+            <a href="about.html" class="hover:opacity-50 transition-opacity" data-cursor="big">Studio</a>
+            <a href="index.html#services" class="hover:opacity-50 transition-opacity" data-cursor="big">Services</a>
+            <a href="netherlands.html" class="opacity-50" data-cursor="big">Utrecht</a>
+            <a href="blog.html" class="hover:opacity-50 transition-opacity" data-cursor="big">Journal</a>
+        </div>
+        <div class="text-sm font-medium uppercase tracking-wide pointer-events-auto">
+            <a href="index.html#contact" class="hover:opacity-50 transition-opacity" data-cursor="big">Contact</a>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <header class="relative w-full min-h-[100svh] flex flex-col justify-between px-6 pt-28 pb-10 overflow-hidden">
+        <!-- Top meta row -->
+        <div class="flex justify-between items-start mono text-xs uppercase tracking-widest text-gray-600 border-t border-black/20 pt-4">
+            <span>Koboku × Netherlands</span>
+            <span>Editorial Vol. 03 / 2026</span>
+            <span class="hidden md:block">枯木 × NL</span>
+        </div>
+
+        <!-- Giant title -->
+        <div class="flex-1 flex items-center">
+            <h1 class="text-huge font-bold uppercase tracking-tighter">
+                <span class="reveal-line"><span>Tweede-</span></span><br>
+                <span class="reveal-line"><span class="serif-i text-[color:var(--accent)] normal-case">hands,</span></span><br>
+                <span class="reveal-line"><span class="text-outline">Again.</span></span>
+            </h1>
+        </div>
+
+        <!-- Bottom intro row -->
+        <div class="border-t border-black/20 pt-6 grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
+            <div class="md:col-span-5">
+                <p class="text-lg md:text-xl leading-tight tracking-tight max-w-md" data-fade>
+                    A curated field-guide to the finest second-hand and vintage shops across the Netherlands — shot, directed, and indexed through the Koboku lens. The things worth keeping, again.
+                </p>
+            </div>
+            <div class="md:col-span-3 mono text-xs uppercase tracking-widest text-gray-600" data-fade>
+                <span class="block text-gray-400 mb-1">Cities:</span>
+                Utrecht<br>Amsterdam<br>Rotterdam<br>Den Haag
+            </div>
+            <div class="md:col-span-4 mono text-xs uppercase tracking-widest text-gray-600 md:text-right" data-fade>
+                <span class="block text-gray-400 mb-1">Scroll for the guide</span>
+                <svg width="28" height="28" viewBox="0 0 28 28" class="inline-block">
+                    <path d="M14 4 L14 24 M4 14 L14 24 L24 14" fill="none" stroke="currentColor" stroke-width="1"/>
+                </svg>
+            </div>
+        </div>
+    </header>
+
+    <!-- TICKER -->
+    <section class="w-full py-6 overflow-hidden border-t border-b border-black/20 bg-[#0A0A0A] text-[#EFEAE3] dark">
+        <div class="ticker" id="ticker">
+            <div class="ticker-track">
+                <span class="text-4xl md:text-6xl font-bold uppercase tracking-tighter mr-12">Vintage</span>
+                <span class="text-4xl md:text-6xl serif-i text-gray-500 mr-12">— kringloop —</span>
+                <span class="text-4xl md:text-6xl font-bold uppercase tracking-tighter mr-12">Archive</span>
+                <span class="text-4xl md:text-6xl serif-i text-gray-500 mr-12">— curated —</span>
+                <span class="text-4xl md:text-6xl font-bold uppercase tracking-tighter mr-12">Second Hand</span>
+                <span class="text-4xl md:text-6xl serif-i text-gray-500 mr-12">— tweedehands —</span>
+            </div>
+            <div class="ticker-track" aria-hidden="true">
+                <span class="text-4xl md:text-6xl font-bold uppercase tracking-tighter mr-12">Vintage</span>
+                <span class="text-4xl md:text-6xl serif-i text-gray-500 mr-12">— kringloop —</span>
+                <span class="text-4xl md:text-6xl font-bold uppercase tracking-tighter mr-12">Archive</span>
+                <span class="text-4xl md:text-6xl serif-i text-gray-500 mr-12">— curated —</span>
+                <span class="text-4xl md:text-6xl font-bold uppercase tracking-tighter mr-12">Second Hand</span>
+                <span class="text-4xl md:text-6xl serif-i text-gray-500 mr-12">— tweedehands —</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- EDITORIAL STATEMENT -->
+    <section class="w-full px-6 py-24 md:py-32">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-8 max-w-7xl">
+            <div class="md:col-span-4 mono text-xs uppercase tracking-widest text-gray-500">
+                <span class="block mb-2">01 / Statement</span>
+                <span class="block">Why second hand?</span>
+            </div>
+            <div class="md:col-span-8">
+                <p class="serif text-3xl md:text-5xl leading-[1.1] tracking-tight mb-8" data-reveal-words>
+                    In a country where the canals are older than most countries, the objects that survive have been chosen twice.
+                </p>
+                <p class="text-lg text-gray-600 max-w-2xl leading-relaxed mb-6" data-fade>
+                    The Netherlands treats its second-hand shops with the same seriousness it treats its museums. <span class="serif-i">Kringloopwinkels</span> on every canal, vintage archives in former factories, tailors who restore more than they sell.
+                </p>
+                <p class="text-lg text-gray-600 max-w-2xl leading-relaxed" data-fade>
+                    With Koboku opening its Utrecht studio in 2026, we're documenting the shops that define Dutch resale culture — and applying our AI creative direction to show their objects the way they deserve to be seen.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- HORIZONTAL SCROLL GALLERY -->
+    <section class="w-full overflow-hidden py-12 border-t border-black/20">
+        <div class="px-6 mb-10 flex justify-between items-end">
+            <h2 class="text-4xl md:text-6xl font-bold uppercase tracking-tighter">Moodboard.</h2>
+            <span class="mono text-xs uppercase tracking-widest text-gray-500 hidden md:block">→ drag to scroll</span>
+        </div>
+        <div class="relative overflow-hidden">
+            <div class="horizontal-track" id="h-track">
+                <!-- TODO: swap for Koboku's own Netherlands photoshoot when ready -->
+                <figure class="horizontal-card img-zoom-container bg-gray-200 relative">
+                    <img src="image3.jpeg" alt="" class="w-full h-full object-cover img-zoom grayscale">
+                    <figcaption class="absolute bottom-4 left-4 mono text-xs uppercase text-white mix-blend-difference">01 — Object Still</figcaption>
+                </figure>
+                <figure class="horizontal-card img-zoom-container bg-gray-200 relative">
+                    <img src="https://images.unsplash.com/photo-1519710164239-da123dc03ef4?q=80&w=1200&auto=format&fit=crop" alt="" class="w-full h-full object-cover img-zoom grayscale">
+                    <figcaption class="absolute bottom-4 left-4 mono text-xs uppercase text-white mix-blend-difference">02 — Utrecht Canal</figcaption>
+                </figure>
+                <figure class="horizontal-card img-zoom-container bg-gray-200 relative">
+                    <img src="https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?q=80&w=1200&auto=format&fit=crop" alt="" class="w-full h-full object-cover img-zoom grayscale">
+                    <figcaption class="absolute bottom-4 left-4 mono text-xs uppercase text-white mix-blend-difference">03 — Archive Rail</figcaption>
+                </figure>
+                <figure class="horizontal-card img-zoom-container bg-gray-200 relative">
+                    <img src="brand_retainer.jpeg" alt="" class="w-full h-full object-cover img-zoom grayscale">
+                    <figcaption class="absolute bottom-4 left-4 mono text-xs uppercase text-white mix-blend-difference">04 — Editorial Still</figcaption>
+                </figure>
+                <figure class="horizontal-card img-zoom-container bg-gray-200 relative">
+                    <img src="https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?q=80&w=1200&auto=format&fit=crop" alt="" class="w-full h-full object-cover img-zoom grayscale">
+                    <figcaption class="absolute bottom-4 left-4 mono text-xs uppercase text-white mix-blend-difference">05 — Fabric Study</figcaption>
+                </figure>
+                <figure class="horizontal-card img-zoom-container bg-gray-200 relative">
+                    <img src="jacq.png" alt="" class="w-full h-full object-cover img-zoom grayscale">
+                    <figcaption class="absolute bottom-4 left-4 mono text-xs uppercase text-white mix-blend-difference">06 — Detail</figcaption>
+                </figure>
+            </div>
+        </div>
+    </section>
+
+    <!-- INTERACTIVE MAP -->
+    <section class="w-full px-6 py-24 md:py-32 border-t border-black/20">
+        <div class="flex justify-between items-end mb-12">
+            <h2 class="text-4xl md:text-6xl font-bold uppercase tracking-tighter">The Map.</h2>
+            <span class="mono text-xs uppercase tracking-widest text-gray-500">04 cities indexed</span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+            <!-- Map SVG -->
+            <div class="lg:col-span-7">
+                <!-- Simplified stylized Netherlands outline -->
+                <svg viewBox="0 0 400 500" class="nl-map w-full h-auto" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Outline (approximate, stylized) -->
+                    <path class="border" d="M 140 40 Q 180 30 220 45 Q 260 55 280 90 Q 310 110 320 150 Q 340 180 330 220 Q 350 260 330 300 Q 340 340 310 370 Q 290 410 250 430 Q 210 450 170 440 Q 130 450 100 420 Q 70 390 80 350 Q 60 310 80 270 Q 70 230 90 200 Q 80 160 110 130 Q 120 80 140 40 Z"/>
+
+                    <!-- Utrecht -->
+                    <g class="pin is-active" data-city="utrecht" transform="translate(210, 240)">
+                        <circle class="ring" r="6" cx="0" cy="0"/>
+                        <circle class="dot" r="5" cx="0" cy="0"/>
+                        <text x="10" y="4">Utrecht ★</text>
+                    </g>
+                    <!-- Amsterdam -->
+                    <g class="pin" data-city="amsterdam" transform="translate(205, 195)">
+                        <circle class="ring" r="6" cx="0" cy="0"/>
+                        <circle class="dot" r="4" cx="0" cy="0"/>
+                        <text x="10" y="4">Amsterdam</text>
+                    </g>
+                    <!-- Rotterdam -->
+                    <g class="pin" data-city="rotterdam" transform="translate(165, 285)">
+                        <circle class="ring" r="6" cx="0" cy="0"/>
+                        <circle class="dot" r="4" cx="0" cy="0"/>
+                        <text x="10" y="4">Rotterdam</text>
+                    </g>
+                    <!-- Den Haag -->
+                    <g class="pin" data-city="denhaag" transform="translate(140, 260)">
+                        <circle class="ring" r="6" cx="0" cy="0"/>
+                        <circle class="dot" r="4" cx="0" cy="0"/>
+                        <text x="-70" y="4" text-anchor="start">Den Haag</text>
+                    </g>
+                </svg>
+                <p class="mono text-xs uppercase tracking-widest text-gray-400 mt-4">★ Koboku studio — Utrecht, 2026</p>
+            </div>
+
+            <!-- City info panel -->
+            <div class="lg:col-span-5 flex flex-col justify-center">
+                <div id="city-panel">
+                    <span class="mono text-xs uppercase tracking-widest text-[color:var(--accent)] mb-4 block">Currently selected</span>
+                    <h3 class="text-5xl md:text-7xl font-bold uppercase tracking-tighter mb-6" id="city-name">Utrecht</h3>
+                    <p class="text-gray-600 leading-relaxed mb-6" id="city-desc">
+                        The spiritual home of the project. Smaller, slower, and richer in second-hand character than Amsterdam — Utrecht's canal-side vintage shops and kringloopwinkels define the Dutch resale aesthetic.
+                    </p>
+                    <div class="mono text-xs uppercase tracking-widest text-gray-500 space-y-2">
+                        <div><span class="text-gray-400 inline-block w-24">Shops indexed:</span> <span id="city-count">06</span></div>
+                        <div><span class="text-gray-400 inline-block w-24">Koboku status:</span> Studio opening 2026</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURED SHOP — EDITORIAL SPREAD -->
+    <section class="w-full px-6 py-24 border-t border-black/20">
+        <div class="mb-12">
+            <span class="mono text-xs uppercase tracking-widest text-gray-500">02 / Feature</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+            <div class="md:col-span-7 aspect-[4/5] md:aspect-auto bg-gray-200 img-zoom-container">
+                <!-- TODO: replace with a real Koboku shoot of the featured shop -->
+                <img src="https://images.unsplash.com/photo-1567016526105-22da7c13161a?q=80&w=1400&auto=format&fit=crop" alt="De Kringloper Utrecht" class="w-full h-full object-cover img-zoom grayscale hover:grayscale-0 transition-all duration-700" data-parallax>
+            </div>
+            <div class="md:col-span-5 flex flex-col justify-between py-6">
+                <div>
+                    <span class="mono text-xs uppercase tracking-widest text-[color:var(--accent)] mb-4 block">Feature No. 01</span>
+                    <h3 class="text-5xl md:text-6xl font-bold uppercase tracking-tighter leading-[0.9] mb-6">
+                        De<br>
+                        <span class="serif-i text-gray-500 normal-case">Kringloper</span>
+                    </h3>
+                    <p class="mono text-xs uppercase tracking-widest text-gray-500 mb-6">Utrecht, Vredenburg 40</p>
+                    <p class="text-gray-600 leading-relaxed mb-4">
+                        A multi-floor kringloopwinkel occupying a converted textile warehouse. Where most second-hand stores merchandise chaos, De Kringloper curates: objects are arranged by material, color, and era.
+                    </p>
+                    <p class="text-gray-600 leading-relaxed">
+                        The upper floor holds their archive: pieces pulled aside for their condition, provenance, or sheer strangeness. It is, quietly, one of the best edits of twentieth-century Dutch design in the country.
+                    </p>
+                </div>
+                <div class="mt-10 pt-6 border-t border-black/20 grid grid-cols-3 gap-4 mono text-xs uppercase text-gray-500">
+                    <div><span class="block text-gray-400">Est.</span>1998</div>
+                    <div><span class="block text-gray-400">Scale</span>1200m²</div>
+                    <div><span class="block text-gray-400">Category</span>All</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SHOP INDEX (list with hover preview) -->
+    <section class="w-full px-6 py-24 border-t border-black/20 relative">
+        <div class="flex justify-between items-end mb-12">
+            <h2 class="text-4xl md:text-6xl font-bold uppercase tracking-tighter">The Index.</h2>
+            <span class="mono text-xs uppercase tracking-widest text-gray-500" id="shop-count">12 Shops</span>
+        </div>
+
+        <!-- Filter chips -->
+        <div class="flex flex-wrap gap-2 mb-10" id="filters">
+            <button class="filter px-4 py-2 text-xs mono uppercase tracking-widest border border-black bg-black text-[#EFEAE3]" data-filter="all" data-cursor="big">All</button>
+            <button class="filter px-4 py-2 text-xs mono uppercase tracking-widest border border-black hover:bg-black hover:text-[#EFEAE3] transition" data-filter="utrecht" data-cursor="big">Utrecht</button>
+            <button class="filter px-4 py-2 text-xs mono uppercase tracking-widest border border-black hover:bg-black hover:text-[#EFEAE3] transition" data-filter="amsterdam" data-cursor="big">Amsterdam</button>
+            <button class="filter px-4 py-2 text-xs mono uppercase tracking-widest border border-black hover:bg-black hover:text-[#EFEAE3] transition" data-filter="rotterdam" data-cursor="big">Rotterdam</button>
+            <button class="filter px-4 py-2 text-xs mono uppercase tracking-widest border border-black hover:bg-black hover:text-[#EFEAE3] transition" data-filter="denhaag" data-cursor="big">Den Haag</button>
+            <button class="filter px-4 py-2 text-xs mono uppercase tracking-widest border border-black hover:bg-black hover:text-[#EFEAE3] transition" data-filter="fashion" data-cursor="big">Fashion</button>
+            <button class="filter px-4 py-2 text-xs mono uppercase tracking-widest border border-black hover:bg-black hover:text-[#EFEAE3] transition" data-filter="furniture" data-cursor="big">Furniture</button>
+            <button class="filter px-4 py-2 text-xs mono uppercase tracking-widest border border-black hover:bg-black hover:text-[#EFEAE3] transition" data-filter="archive" data-cursor="big">Archive</button>
+        </div>
+
+        <div id="shops" class="divide-y divide-black/15 border-t border-b border-black/20">
+            <!-- NOTE: these are editorial placeholders curated by Koboku. Verify each shop before publishing. -->
+            <a href="#" class="shop-row relative flex justify-between items-center py-6 group" data-city="utrecht" data-cat="archive" data-cursor="big">
+                <div class="flex items-baseline gap-6">
+                    <span class="mono text-xs text-gray-400 w-8">01</span>
+                    <span class="shop-name-wrap"><span class="text-2xl md:text-4xl font-bold tracking-tight uppercase">De Kringloper</span></span>
+                    <span class="serif-i text-gray-500 hidden md:inline">— featured</span>
+                </div>
+                <div class="flex items-center gap-8">
+                    <span class="mono text-xs uppercase tracking-widest text-gray-500 hidden md:inline">Utrecht — Archive</span>
+                    <span class="mono text-xs uppercase tracking-widest text-gray-400">→</span>
+                </div>
+                <img src="https://images.unsplash.com/photo-1567016526105-22da7c13161a?q=80&w=600&auto=format&fit=crop" alt="" class="preview">
+            </a>
+
+            <a href="#" class="shop-row relative flex justify-between items-center py-6 group" data-city="utrecht" data-cat="fashion" data-cursor="big">
+                <div class="flex items-baseline gap-6">
+                    <span class="mono text-xs text-gray-400 w-8">02</span>
+                    <span class="shop-name-wrap"><span class="text-2xl md:text-4xl font-bold tracking-tight uppercase">Zadelstraat Vintage</span></span>
+                </div>
+                <div class="flex items-center gap-8">
+                    <span class="mono text-xs uppercase tracking-widest text-gray-500 hidden md:inline">Utrecht — Fashion</span>
+                    <span class="mono text-xs uppercase tracking-widest text-gray-400">→</span>
+                </div>
+                <img src="https://images.unsplash.com/photo-1445205170230-053b83016050?q=80&w=600&auto=format&fit=crop" alt="" class="preview">
+            </a>
+
+            <a href="#" class="shop-row relative flex justify-between items-center py-6 group" data-city="amsterdam" data-cat="archive" data-cursor="big">
+                <div class="flex items-baseline gap-6">
+                    <span class="mono text-xs text-gray-400 w-8">03</span>
+                    <span class="shop-name-wrap"><span class="text-2xl md:text-4xl font-bold tracking-tight uppercase">Episode Amsterdam</span></span>
+                </div>
+                <div class="flex items-center gap-8">
+                    <span class="mono text-xs uppercase tracking-widest text-gray-500 hidden md:inline">Amsterdam — Archive</span>
+                    <span class="mono text-xs uppercase tracking-widest text-gray-400">→</span>
+                </div>
+                <img src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=600&auto=format&fit=crop" alt="" class="preview">
+            </a>
+
+            <a href="#" class="shop-row relative flex justify-between items-center py-6 group" data-city="amsterdam" data-cat="fashion" data-cursor="big">
+                <div class="flex items-baseline gap-6">
+                    <span class="mono text-xs text-gray-400 w-8">04</span>
+                    <span class="shop-name-wrap"><span class="text-2xl md:text-4xl font-bold tracking-tight uppercase">Bij Ons Vintage</span></span>
+                </div>
+                <div class="flex items-center gap-8">
+                    <span class="mono text-xs uppercase tracking-widest text-gray-500 hidden md:inline">Amsterdam — Fashion</span>
+                    <span class="mono text-xs uppercase tracking-widest text-gray-400">→</span>
+                </div>
+                <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=600&auto=format&fit=crop" alt="" class="preview">
+            </a>
+
+            <a href="#" class="shop-row relative flex justify-between items-center py-6 group" data-city="amsterdam" data-cat="furniture" data-cursor="big">
+                <div class="flex items-baseline gap-6">
+                    <span class="mono text-xs text-gray-400 w-8">05</span>
+                    <span class="shop-name-wrap"><span class="text-2xl md:text-4xl font-bold tracking-tight uppercase">Rumors Amsterdam</span></span>
+                </div>
+                <div class="flex items-center gap-8">
+                    <span class="mono text-xs uppercase tracking-widest text-gray-500 hidden md:inline">Amsterdam — Furniture</span>
+                    <span class="mono text-xs uppercase tracking-widest text-gray-400">→</span>
+                </div>
+                <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=600&auto=format&fit=crop" alt="" class="preview">
+            </a>
+
+            <a href="#" class="shop-row relative flex justify-between items-center py-6 group" data-city="rotterdam" data-cat="furniture" data-cursor="big">
+                <div class="flex items-baseline gap-6">
+                    <span class="mono text-xs text-gray-400 w-8">06</span>
+                    <span class="shop-name-wrap"><span class="text-2xl md:text-4xl font-bold tracking-tight uppercase">Van Dijk & Ko</span></span>
+                </div>
+                <div class="flex items-center gap-8">
+                    <span class="mono text-xs uppercase tracking-widest text-gray-500 hidden md:inline">Rotterdam — Furniture</span>
+                    <span class="mono text-xs uppercase tracking-widest text-gray-400">→</span>
+                </div>
+                <img src="https://images.unsplash.com/photo-1538688525198-9b88f6f53126?q=80&w=600&auto=format&fit=crop" alt="" class="preview">
+            </a>
+
+            <a href="#" class="shop-row relative flex justify-between items-center py-6 group" data-city="rotterdam" data-cat="archive" data-cursor="big">
+                <div class="flex items-baseline gap-6">
+                    <span class="mono text-xs text-gray-400 w-8">07</span>
+                    <span class="shop-name-wrap"><span class="text-2xl md:text-4xl font-bold tracking-tight uppercase">Piet Hein Eek Depot</span></span>
+                </div>
+                <div class="flex items-center gap-8">
+                    <span class="mono text-xs uppercase tracking-widest text-gray-500 hidden md:inline">Rotterdam — Archive</span>
+                    <span class="mono text-xs uppercase tracking-widest text-gray-400">→</span>
+                </div>
+                <img src="https://images.unsplash.com/photo-1618220179428-22790b461013?q=80&w=600&auto=format&fit=crop" alt="" class="preview">
+            </a>
+
+            <a href="#" class="shop-row relative flex justify-between items-center py-6 group" data-city="rotterdam" data-cat="fashion" data-cursor="big">
+                <div class="flex items-baseline gap-6">
+                    <span class="mono text-xs text-gray-400 w-8">08</span>
+                    <span class="shop-name-wrap"><span class="text-2xl md:text-4xl font-bold tracking-tight uppercase">Super Trash Archive</span></span>
+                </div>
+                <div class="flex items-center gap-8">
+                    <span class="mono text-xs uppercase tracking-widest text-gray-500 hidden md:inline">Rotterdam — Fashion</span>
+                    <span class="mono text-xs uppercase tracking-widest text-gray-400">→</span>
+                </div>
+                <img src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=600&auto=format&fit=crop" alt="" class="preview">
+            </a>
+
+            <a href="#" class="shop-row relative flex justify-between items-center py-6 group" data-city="denhaag" data-cat="fashion" data-cursor="big">
+                <div class="flex items-baseline gap-6">
+                    <span class="mono text-xs text-gray-400 w-8">09</span>
+                    <span class="shop-name-wrap"><span class="text-2xl md:text-4xl font-bold tracking-tight uppercase">Haagsche Kringloop</span></span>
+                </div>
+                <div class="flex items-center gap-8">
+                    <span class="mono text-xs uppercase tracking-widest text-gray-500 hidden md:inline">Den Haag — Fashion</span>
+                    <span class="mono text-xs uppercase tracking-widest text-gray-400">→</span>
+                </div>
+                <img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=600&auto=format&fit=crop" alt="" class="preview">
+            </a>
+
+            <a href="#" class="shop-row relative flex justify-between items-center py-6 group" data-city="denhaag" data-cat="furniture" data-cursor="big">
+                <div class="flex items-baseline gap-6">
+                    <span class="mono text-xs text-gray-400 w-8">10</span>
+                    <span class="shop-name-wrap"><span class="text-2xl md:text-4xl font-bold tracking-tight uppercase">Noordeinde Antiek</span></span>
+                </div>
+                <div class="flex items-center gap-8">
+                    <span class="mono text-xs uppercase tracking-widest text-gray-500 hidden md:inline">Den Haag — Furniture</span>
+                    <span class="mono text-xs uppercase tracking-widest text-gray-400">→</span>
+                </div>
+                <img src="https://images.unsplash.com/photo-1560448204-603b3fc33ddc?q=80&w=600&auto=format&fit=crop" alt="" class="preview">
+            </a>
+
+            <a href="#" class="shop-row relative flex justify-between items-center py-6 group" data-city="utrecht" data-cat="furniture" data-cursor="big">
+                <div class="flex items-baseline gap-6">
+                    <span class="mono text-xs text-gray-400 w-8">11</span>
+                    <span class="shop-name-wrap"><span class="text-2xl md:text-4xl font-bold tracking-tight uppercase">Goudestein Design</span></span>
+                </div>
+                <div class="flex items-center gap-8">
+                    <span class="mono text-xs uppercase tracking-widest text-gray-500 hidden md:inline">Utrecht — Furniture</span>
+                    <span class="mono text-xs uppercase tracking-widest text-gray-400">→</span>
+                </div>
+                <img src="https://images.unsplash.com/photo-1549187774-b4e9b0445b41?q=80&w=600&auto=format&fit=crop" alt="" class="preview">
+            </a>
+
+            <a href="#" class="shop-row relative flex justify-between items-center py-6 group" data-city="utrecht" data-cat="fashion" data-cursor="big">
+                <div class="flex items-baseline gap-6">
+                    <span class="mono text-xs text-gray-400 w-8">12</span>
+                    <span class="shop-name-wrap"><span class="text-2xl md:text-4xl font-bold tracking-tight uppercase">Oude Gracht Select</span></span>
+                </div>
+                <div class="flex items-center gap-8">
+                    <span class="mono text-xs uppercase tracking-widest text-gray-500 hidden md:inline">Utrecht — Fashion</span>
+                    <span class="mono text-xs uppercase tracking-widest text-gray-400">→</span>
+                </div>
+                <img src="https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?q=80&w=600&auto=format&fit=crop" alt="" class="preview">
+            </a>
+        </div>
+
+        <p class="mono text-xs uppercase tracking-widest text-gray-400 mt-6">
+            ⚠ Curated selection — details and opening hours should be verified before visit.
+        </p>
+    </section>
+
+    <!-- VIDEO / MOTION PLACEHOLDER -->
+    <section class="w-full px-6 py-24 border-t border-black/20">
+        <div class="flex justify-between items-end mb-12">
+            <h2 class="text-4xl md:text-6xl font-bold uppercase tracking-tighter">In Motion.</h2>
+            <span class="mono text-xs uppercase tracking-widest text-gray-500">Reel — 2026</span>
+        </div>
+        <div class="relative w-full aspect-[16/9] bg-[#0A0A0A] overflow-hidden img-zoom-container" id="video-block">
+            <!-- TODO: replace poster image with an actual video embed (<video> or vimeo iframe) once Koboku's NL reel is ready -->
+            <img src="image3.jpeg" alt="Koboku Netherlands reel poster" class="absolute inset-0 w-full h-full object-cover grayscale opacity-60" data-parallax>
+            <div class="absolute inset-0 flex flex-col items-center justify-center text-[#EFEAE3] text-center">
+                <button class="w-20 h-20 md:w-28 md:h-28 rounded-full border border-[#EFEAE3] flex items-center justify-center hover:bg-[#EFEAE3] hover:text-[#0A0A0A] transition-all" data-cursor="big" aria-label="Play reel">
+                    <svg width="18" height="22" viewBox="0 0 18 22" fill="currentColor"><path d="M0 0 L18 11 L0 22 Z"/></svg>
+                </button>
+                <span class="mono text-xs uppercase tracking-widest mt-6 opacity-80">Koboku × NL — 02:34</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="w-full px-6 py-24 border-t border-black/20 bg-[#0A0A0A] text-[#EFEAE3] dark">
+        <div class="max-w-4xl">
+            <span class="mono text-xs uppercase tracking-widest text-gray-500 block mb-8">03 / Contact</span>
+            <h2 class="text-5xl md:text-8xl font-bold uppercase tracking-tighter leading-[0.9] mb-10">
+                Have a shop we<br>
+                <span class="text-outline">should see?</span>
+            </h2>
+            <p class="text-gray-400 text-lg max-w-xl mb-10 leading-relaxed">
+                We are continuously expanding the guide. If you run, love, or have unearthed a second-hand or vintage shop in the Netherlands that deserves the Koboku lens — tell us.
+            </p>
+            <a href="mailto:utrecht@koboku.it" class="inline-block border border-[#EFEAE3] px-8 py-4 text-sm mono uppercase tracking-widest hover:bg-[#EFEAE3] hover:text-[#0A0A0A] transition-colors" data-cursor="big">
+                utrecht@koboku.it →
+            </a>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="w-full bg-[#EFEAE3] pt-12 pb-6">
+        <div class="w-full flex justify-center items-center px-4 overflow-hidden select-none pb-8">
+            <h2 class="text-massive font-black uppercase text-center w-full block tracking-tighter text-[#0A0A0A]">UTRECHT</h2>
+        </div>
+        <div class="w-full border-t border-black/20 pt-6 px-6 flex flex-col md:flex-row justify-between items-start md:items-center text-xs mono uppercase text-gray-500 gap-4 md:gap-0">
+            <div>©2026 Koboku Studio. All rights reserved.</div>
+            <div>Utrecht Tweedehands — Editorial Vol. 03</div>
+            <div><a href="index.html" class="hover:text-black transition-colors" data-cursor="big">← Back to Studio</a></div>
+        </div>
+    </footer>
+
+    <script>
+    // ============================================================
+    // KOBOKU × NL — Motion layer
+    // ============================================================
+    (function() {
+        if (typeof gsap === 'undefined') return;
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Lenis smooth scroll
+        let lenis = null;
+        if (window.Lenis && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            lenis = new Lenis({ duration: 1.15, smoothWheel: true });
+            function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
+            requestAnimationFrame(raf);
+            lenis.on('scroll', ScrollTrigger.update);
+        }
+
+        // Hero line reveal
+        gsap.to('.reveal-line > span', {
+            yPercent: 0,
+            duration: 1.15,
+            stagger: 0.14,
+            ease: 'expo.out',
+            delay: 0.1
+        });
+
+        // Fade
+        gsap.utils.toArray('[data-fade]').forEach(el => {
+            gsap.from(el, {
+                y: 24, opacity: 0,
+                duration: 0.9, ease: 'power3.out',
+                scrollTrigger: { trigger: el, start: 'top 85%', once: true }
+            });
+        });
+
+        // Word-by-word reveal
+        gsap.utils.toArray('[data-reveal-words]').forEach(el => {
+            const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+            const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
+            nodes.forEach(node => {
+                const frag = document.createDocumentFragment();
+                node.nodeValue.split(/(\s+)/).forEach(chunk => {
+                    if (chunk.trim() === '') frag.appendChild(document.createTextNode(chunk));
+                    else {
+                        const w = document.createElement('span');
+                        w.style.display='inline-block'; w.style.overflow='hidden'; w.style.verticalAlign='top';
+                        const inner = document.createElement('span');
+                        inner.style.display='inline-block'; inner.style.transform='translateY(110%)';
+                        inner.textContent = chunk;
+                        w.appendChild(inner); frag.appendChild(w);
+                    }
+                });
+                node.parentNode.replaceChild(frag, node);
+            });
+            const inners = el.querySelectorAll('span > span');
+            gsap.to(inners, {
+                yPercent: 0, duration: 1, stagger: 0.035, ease: 'expo.out',
+                scrollTrigger: { trigger: el, start: 'top 82%', once: true }
+            });
+        });
+
+        // Image parallax
+        gsap.utils.toArray('[data-parallax]').forEach(img => {
+            gsap.fromTo(img, { yPercent: -8 }, {
+                yPercent: 8, ease: 'none',
+                scrollTrigger: { trigger: img.parentElement, start: 'top bottom', end: 'bottom top', scrub: true }
+            });
+        });
+
+        // Horizontal scroll gallery — pin and drag horizontally
+        const track = document.getElementById('h-track');
+        if (track) {
+            const distance = () => track.scrollWidth - window.innerWidth + 48;
+            gsap.to(track, {
+                x: () => -distance(),
+                ease: 'none',
+                scrollTrigger: {
+                    trigger: track.parentElement,
+                    start: 'top 20%',
+                    end: () => '+=' + distance(),
+                    scrub: 0.8,
+                    pin: track.parentElement,
+                    invalidateOnRefresh: true
+                }
+            });
+        }
+
+        // Ticker
+        const ticker = document.getElementById('ticker');
+        if (ticker) {
+            const tracks = ticker.querySelectorAll('.ticker-track');
+            const total = tracks[0].scrollWidth;
+            gsap.to(tracks, { x: -total, duration: 28, ease: 'none', repeat: -1 });
+        }
+
+        // Map pins → update city panel
+        const cityData = {
+            utrecht:    { name: 'Utrecht',    count: '06', desc: 'The spiritual home of the project. Smaller, slower, and richer in second-hand character than Amsterdam — Utrecht\'s canal-side vintage shops and kringloopwinkels define the Dutch resale aesthetic.' },
+            amsterdam:  { name: 'Amsterdam',  count: '04', desc: 'The international shopfront. Here vintage has gone global — Episode, Bij Ons, and a handful of archive rooms above Jordaan boutiques carry the pieces that end up in magazines.' },
+            rotterdam:  { name: 'Rotterdam',  count: '04', desc: 'Post-industrial, raw, design-forward. Rotterdam\'s second-hand scene sits inside repurposed warehouses and concrete arcades — closer to Berlin than to Amsterdam in feel.' },
+            denhaag:    { name: 'Den Haag',   count: '03', desc: 'The quiet one. Diplomatic, older money, slower turnover — which means the antique and furniture finds run deeper than anywhere else in the country.' }
+        };
+        const cityName = document.getElementById('city-name');
+        const cityDesc = document.getElementById('city-desc');
+        const cityCount = document.getElementById('city-count');
+        document.querySelectorAll('.pin').forEach(pin => {
+            pin.addEventListener('click', () => {
+                document.querySelectorAll('.pin').forEach(p => p.classList.remove('is-active'));
+                pin.classList.add('is-active');
+                const key = pin.dataset.city;
+                const d = cityData[key];
+                if (!d) return;
+                gsap.to([cityName, cityDesc, cityCount], {
+                    opacity: 0, y: -10, duration: 0.25, ease: 'power2.in',
+                    onComplete: () => {
+                        cityName.textContent = d.name;
+                        cityDesc.textContent = d.desc;
+                        cityCount.textContent = d.count;
+                        gsap.fromTo([cityName, cityDesc, cityCount],
+                            { opacity: 0, y: 10 },
+                            { opacity: 1, y: 0, duration: 0.5, stagger: 0.08, ease: 'power2.out' });
+                    }
+                });
+            });
+        });
+
+        // Shop name reveal on scroll
+        gsap.utils.toArray('.shop-row').forEach(row => {
+            const name = row.querySelector('.shop-name-wrap span');
+            if (!name) return;
+            gsap.fromTo(name, { yPercent: 110 }, {
+                yPercent: 0, duration: 0.9, ease: 'expo.out',
+                scrollTrigger: { trigger: row, start: 'top 92%', once: true }
+            });
+        });
+
+        // Filters
+        const filters = document.querySelectorAll('#filters .filter');
+        const shops = document.querySelectorAll('#shops .shop-row');
+        const shopCountEl = document.getElementById('shop-count');
+        filters.forEach(f => {
+            f.addEventListener('click', () => {
+                filters.forEach(ff => { ff.classList.remove('bg-black','text-[#EFEAE3]'); });
+                f.classList.add('bg-black','text-[#EFEAE3]');
+                const filter = f.dataset.filter;
+                let visible = 0;
+                shops.forEach(s => {
+                    const city = s.dataset.city;
+                    const cat = s.dataset.cat;
+                    const match = filter === 'all' || city === filter || cat === filter;
+                    s.style.display = match ? '' : 'none';
+                    if (match) visible++;
+                });
+                if (shopCountEl) shopCountEl.textContent = visible + ' Shops';
+            });
+        });
+
+        // Cursor
+        const cursor = document.getElementById('cursor');
+        if (cursor && matchMedia('(hover: hover)').matches) {
+            const pos = { x: window.innerWidth/2, y: window.innerHeight/2 };
+            const target = { ...pos };
+            window.addEventListener('mousemove', e => { target.x = e.clientX; target.y = e.clientY; });
+            gsap.ticker.add(() => {
+                pos.x += (target.x - pos.x) * 0.2;
+                pos.y += (target.y - pos.y) * 0.2;
+                cursor.style.transform = `translate(${pos.x}px, ${pos.y}px) translate(-50%, -50%)`;
+            });
+            document.querySelectorAll('[data-cursor="big"]').forEach(el => {
+                el.addEventListener('mouseenter', () => cursor.classList.add('is-big'));
+                el.addEventListener('mouseleave', () => cursor.classList.remove('is-big'));
+            });
+        }
+
+        ScrollTrigger.refresh();
+    })();
+    </script>
+</body>
+</html>

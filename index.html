@@ -1,24 +1,41 @@
+<!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Koboku — AI Creative Studio</title>
+    <meta name="description" content="Koboku is an AI Creative Direction studio. Strategic vision, generative tools, cinematic taste — Florence, Tokyo, Utrecht.">
+
+    <!-- Tailwind (CDN — fine for now; migrate to Tailwind CLI before scaling traffic) -->
     <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+
+    <!-- Fonts: Inter (body, kept for continuity) + Fraunces (display serif, editorial accent) + JetBrains Mono (captions) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,700;1,9..144,300&family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- GSAP + ScrollTrigger + SplitText alternative + Lenis smooth scroll -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
+
     <style>
         :root {
             --bg-color: #F4F4F2;
             --text-color: #0A0A0A;
+            --ink-dim: #8A867D;
+            --rule: rgba(10,10,10,0.12);
         }
+        html, body { background-color: var(--bg-color); }
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--bg-color);
             color: var(--text-color);
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
         }
+
+        /* Typography scales */
         .text-huge {
             font-size: clamp(4rem, 9vw, 12rem);
             line-height: 0.85;
@@ -36,42 +53,139 @@
         .dark-section .text-outline {
             -webkit-text-stroke: 2px var(--bg-color);
         }
+        .serif { font-family: 'Fraunces', serif; font-style: italic; font-weight: 300; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+
+        /* Line reveal — each word clip-revealed in */
+        .reveal-line {
+            display: inline-block;
+            overflow: hidden;
+            vertical-align: top;
+        }
+        .reveal-line > span {
+            display: inline-block;
+            transform: translateY(110%);
+            will-change: transform;
+        }
+
+        /* Image reveal — slides a mask away */
+        .img-reveal { position: relative; overflow: hidden; }
+        .img-reveal::after {
+            content: '';
+            position: absolute; inset: 0;
+            background: var(--text-color);
+            transform-origin: bottom;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* Hover zoom for images */
+        .img-zoom-container { overflow: hidden; }
+        .img-zoom { transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), filter 0.8s ease; will-change: transform; }
+        .img-zoom-container:hover .img-zoom { transform: scale(1.05); }
+
+        /* Hover targets (services rows) */
         .hover-trigger .hover-target {
             opacity: 0;
             transform: translateY(10px);
             transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .hover-trigger:hover .hover-target {
+        .hover-trigger:hover .hover-target { opacity: 1; transform: translateY(0); }
+
+        /* Marquee */
+        .marquee {
+            display: flex;
+            white-space: nowrap;
+            will-change: transform;
+        }
+        .marquee-track { display: inline-flex; padding-right: 4rem; }
+
+        /* Custom cursor */
+        .cursor-dot {
+            position: fixed;
+            top: 0; left: 0;
+            width: 8px; height: 8px;
+            background: var(--text-color);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            mix-blend-mode: difference;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s ease, height 0.3s ease, background 0.3s ease;
+            will-change: transform;
+        }
+        .cursor-dot.is-big { width: 56px; height: 56px; background: var(--bg-color); }
+        @media (hover: none) { .cursor-dot { display: none; } }
+
+        /* Hero rotating words */
+        .rotator {
+            display: inline-grid;
+            grid-template-areas: "stack";
+            vertical-align: baseline;
+        }
+        .rotator > span {
+            grid-area: stack;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        .rotator > span.is-active {
             opacity: 1;
             transform: translateY(0);
+            transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .img-zoom-container {
-            overflow: hidden;
+        .rotator > span.is-leaving {
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
         }
-        .img-zoom {
-            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), filter 0.8s ease;
+
+        /* Grain overlay — subtle, editorial */
+        .grain::before {
+            content: '';
+            position: fixed; inset: 0;
+            pointer-events: none;
+            z-index: 100;
+            opacity: 0.035;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+            mix-blend-mode: multiply;
         }
-        .img-zoom-container:hover .img-zoom {
-            transform: scale(1.05);
+
+        /* NEW: Utrecht pill accent */
+        .pulse-dot {
+            display: inline-block;
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #FF4D2E;
+            margin-right: 10px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
         }
     </style>
 </head>
-<body class="w-full min-h-screen flex flex-col selection:bg-black selection:text-[#F4F4F2]">
+<body class="w-full min-h-screen flex flex-col selection:bg-black selection:text-[#F4F4F2] grain">
+
+    <!-- Custom cursor -->
+    <div class="cursor-dot" id="cursor"></div>
 
     <!-- NAV -->
     <nav class="fixed top-0 w-full z-50 flex justify-between items-start px-6 py-6 mix-blend-difference text-[#F4F4F2] pointer-events-none">
-        <div class="font-bold text-xl tracking-tighter uppercase pointer-events-auto cursor-pointer">
+        <a href="index.html" class="font-bold text-xl tracking-tighter uppercase pointer-events-auto cursor-pointer" data-cursor="big">
             Koboku
-        </div>
+        </a>
         <div class="hidden md:flex space-x-8 text-sm font-medium uppercase tracking-wide pointer-events-auto">
-            <a href="portfolio.html" class="hover:opacity-50 transition-opacity">Work</a>
-            <a href="about.html" class="hover:opacity-50 transition-opacity">Studio</a>
-            <a href="#services" class="hover:opacity-50 transition-opacity">Services</a>
-            <a href="#founders" class="hover:opacity-50 transition-opacity">Founders</a>
-            <a href="blog.html" class="hover:opacity-50 transition-opacity">Journal</a>
+            <a href="portfolio.html" class="hover:opacity-50 transition-opacity" data-cursor="big">Work</a>
+            <a href="about.html" class="hover:opacity-50 transition-opacity" data-cursor="big">Studio</a>
+            <a href="#services" class="hover:opacity-50 transition-opacity" data-cursor="big">Services</a>
+            <a href="netherlands.html" class="hover:opacity-50 transition-opacity flex items-center" data-cursor="big">
+                <span class="pulse-dot"></span>Utrecht
+            </a>
+            <a href="blog.html" class="hover:opacity-50 transition-opacity" data-cursor="big">Journal</a>
         </div>
         <div class="text-sm font-medium uppercase tracking-wide pointer-events-auto">
-            <a href="#contact" class="hover:opacity-50 transition-opacity">Contact</a>
+            <a href="#contact" class="hover:opacity-50 transition-opacity" data-cursor="big">Contact</a>
         </div>
     </nav>
 
@@ -80,30 +194,37 @@
     <!-- HERO -->
     <header class="w-full pt-32 pb-16 md:pt-48 md:pb-32 px-6 flex flex-col justify-end">
         <h1 class="text-huge font-bold uppercase mb-8 max-w-[95%]">
-            Where the<br>
-            <span class="text-gray-400">Sword Meets</span><br>
-            the Screen.
+            <span class="reveal-line"><span>Where the</span></span><br>
+            <span class="reveal-line"><span class="text-gray-400 serif">Sword Meets</span></span><br>
+            <span class="reveal-line"><span>the
+                <span class="rotator" aria-label="Screen">
+                    <span class="is-active">Screen.</span>
+                    <span>Frame.</span>
+                    <span>Brand.</span>
+                </span>
+            </span></span>
         </h1>
         <div class="w-full border-t border-black/20 pt-6 mt-12 flex flex-col md:flex-row justify-between items-start gap-8">
-            <p class="text-xl md:text-2xl font-medium max-w-2xl leading-tight tracking-tight">
+            <p class="text-xl md:text-2xl font-medium max-w-2xl leading-tight tracking-tight" data-fade>
                 Koboku is an AI Creative Direction studio. We multiply brand visual output through strategic direction, generative tools, and cinematic taste — at the speed and cost traditional agencies cannot match.
             </p>
-            <div class="text-sm font-mono uppercase tracking-widest text-gray-500">
-                Based in<br>Florence — Tokyo — Utrecht
+            <div class="text-sm mono uppercase tracking-widest text-gray-500" data-fade>
+                Based in<br>
+                Florence — Tokyo — <span class="text-black font-semibold">Utrecht</span>
             </div>
         </div>
     </header>
 
     <!-- FEATURED WORK -->
     <section id="work" class="w-full px-6 py-12">
-        <div class="flex flex-col md:flex-row border-t border-black pt-4 text-[10px] md:text-xs font-mono uppercase mb-6 gap-6 md:gap-0">
+        <div class="flex flex-col md:flex-row border-t border-black pt-4 text-[10px] md:text-xs mono uppercase mb-6 gap-6 md:gap-0">
             <div class="w-full md:w-1/3">
                 <span class="text-gray-500 block mb-1">Approach:</span>
                 AI Creative Direction
             </div>
             <div class="w-full md:w-1/3">
                 <span class="text-gray-500 block mb-1">Markets:</span>
-                Fashion — Beauty — Lifestyle
+                Fashion — Beauty — Lifestyle — Vintage
             </div>
             <div class="w-full md:w-1/3">
                 <span class="text-gray-500 block mb-1">Output:</span>
@@ -113,64 +234,90 @@
             </div>
         </div>
 
-        <div class="w-full h-[60vh] md:h-[85vh] img-zoom-container relative bg-gray-200">
-            <img src="campaign%20volume%201.jpeg" alt="Koboku AI Campaign" class="w-full h-full object-cover img-zoom grayscale hover:grayscale-0">
+        <div class="w-full h-[60vh] md:h-[85vh] img-zoom-container relative bg-gray-200 img-reveal" data-parallax-wrap>
+            <img src="campaign_volume_1.jpeg" alt="Koboku AI Campaign" class="w-full h-full object-cover img-zoom grayscale hover:grayscale-0" data-parallax>
             <div class="absolute bottom-6 left-6 md:bottom-12 md:left-12 text-white mix-blend-difference">
+                <span class="mono text-xs uppercase tracking-widest opacity-70 block mb-2">Campaign — 2025</span>
                 <h2 class="text-4xl md:text-7xl font-bold tracking-tighter">Vol. I.</h2>
+            </div>
+            <div class="absolute top-6 right-6 md:top-12 md:right-12 text-white mix-blend-difference mono text-xs uppercase tracking-widest">
+                <div>Scroll ↓</div>
             </div>
         </div>
 
         <div class="mt-16 md:mt-32 text-center px-4 w-full flex justify-center">
-            <h3 class="text-3xl md:text-6xl font-bold tracking-tight leading-[1.1] max-w-5xl">
-                We don't just make visuals. We build brand worlds that perform.
+            <h3 class="text-3xl md:text-6xl font-bold tracking-tight leading-[1.1] max-w-5xl" data-reveal-words>
+                We don't just make visuals. We build <span class="serif text-gray-500">brand worlds</span> that perform.
             </h3>
         </div>
         <div class="w-full flex justify-center mt-12">
-            <button class="w-12 h-12 rounded-full border border-black flex items-center justify-center hover:bg-black hover:text-[#F4F4F2] transition-colors">
+            <a href="portfolio.html" class="w-12 h-12 rounded-full border border-black flex items-center justify-center hover:bg-black hover:text-[#F4F4F2] transition-colors" data-cursor="big" aria-label="See all work">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M7 0V14M0 7H14" stroke="currentColor" stroke-width="1.5"></path>
+                    <path d="M7 0V14M0 7H14" stroke="currentColor" stroke-width="1.5"/>
                 </svg>
-            </button>
+            </a>
+        </div>
+    </section>
+
+    <!-- MARQUEE — infinite scroll of brand values -->
+    <section class="w-full py-8 overflow-hidden border-t border-b border-black/10">
+        <div class="marquee" id="marquee">
+            <div class="marquee-track">
+                <span class="text-6xl md:text-8xl font-bold uppercase tracking-tighter mr-16">Discipline</span>
+                <span class="text-6xl md:text-8xl serif text-gray-400 mr-16">— precision —</span>
+                <span class="text-6xl md:text-8xl font-bold uppercase tracking-tighter mr-16">Speed</span>
+                <span class="text-6xl md:text-8xl serif text-gray-400 mr-16">— taste —</span>
+                <span class="text-6xl md:text-8xl font-bold uppercase tracking-tighter mr-16">Vision</span>
+                <span class="text-6xl md:text-8xl serif text-gray-400 mr-16">— 枯木 —</span>
+            </div>
+            <div class="marquee-track" aria-hidden="true">
+                <span class="text-6xl md:text-8xl font-bold uppercase tracking-tighter mr-16">Discipline</span>
+                <span class="text-6xl md:text-8xl serif text-gray-400 mr-16">— precision —</span>
+                <span class="text-6xl md:text-8xl font-bold uppercase tracking-tighter mr-16">Speed</span>
+                <span class="text-6xl md:text-8xl serif text-gray-400 mr-16">— taste —</span>
+                <span class="text-6xl md:text-8xl font-bold uppercase tracking-tighter mr-16">Vision</span>
+                <span class="text-6xl md:text-8xl serif text-gray-400 mr-16">— 枯木 —</span>
+            </div>
         </div>
     </section>
 
     <!-- STUDIO PHILOSOPHY -->
     <section id="studio" class="w-full px-6 py-24 dark-section bg-[#0A0A0A] text-[#F4F4F2]">
         <div class="border-t border-[#F4F4F2]/20 pt-6 mb-16 flex justify-between items-center">
-            <span class="text-xs font-mono uppercase tracking-widest text-gray-500">Studio</span>
-            <span class="text-xs font-mono uppercase tracking-widest text-gray-500">EST. 2025 — Florence</span>
+            <span class="text-xs mono uppercase tracking-widest text-gray-500">Studio</span>
+            <span class="text-xs mono uppercase tracking-widest text-gray-500">EST. 2025 — Florence</span>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-16 max-w-7xl">
             <div>
-                <h2 class="text-4xl md:text-6xl font-bold tracking-tighter leading-[0.9] mb-10 uppercase">
+                <h2 class="text-4xl md:text-6xl font-bold tracking-tighter leading-[0.9] mb-10 uppercase" data-reveal-words>
                     The Name.<br>
                     <span class="text-outline">The Philosophy.</span>
                 </h2>
-                <p class="text-lg text-gray-400 leading-relaxed max-w-lg">
+                <p class="text-lg text-gray-400 leading-relaxed max-w-lg" data-fade>
                     Koboku — 枯木 — is one of the most celebrated ink paintings by Miyamoto Musashi, the undefeated swordsman who sought mastery through art as much as combat. A withered tree rendered with absolute precision. Economy of form. Intentionality in every stroke.
                 </p>
-                <p class="text-lg text-gray-400 leading-relaxed max-w-lg mt-6">
+                <p class="text-lg text-gray-400 leading-relaxed max-w-lg mt-6" data-fade>
                     That is how we approach AI creative direction: disciplined vision, no wasted motion, results that land. We are not prompt engineers. We are strategic multipliers — directors who understand that the brief is only the beginning.
                 </p>
             </div>
             <div class="flex flex-col justify-end">
                 <div class="grid grid-cols-2 gap-px bg-[#F4F4F2]/10">
-                    <div class="bg-[#0A0A0A] p-8">
-                        <div class="text-5xl font-bold tracking-tight mb-2">10×</div>
-                        <div class="text-sm font-mono uppercase text-gray-500">Creative Output<br>vs. Traditional</div>
+                    <div class="bg-[#0A0A0A] p-8" data-counter-wrap>
+                        <div class="text-5xl font-bold tracking-tight mb-2"><span data-counter="10">0</span>×</div>
+                        <div class="text-sm mono uppercase text-gray-500">Creative Output<br>vs. Traditional</div>
                     </div>
                     <div class="bg-[#0A0A0A] p-8">
-                        <div class="text-5xl font-bold tracking-tight mb-2">3</div>
-                        <div class="text-sm font-mono uppercase text-gray-500">Continents.<br>One Studio.</div>
+                        <div class="text-5xl font-bold tracking-tight mb-2"><span data-counter="3">0</span></div>
+                        <div class="text-sm mono uppercase text-gray-500">Continents.<br>One Studio.</div>
                     </div>
                     <div class="bg-[#0A0A0A] p-8">
                         <div class="text-5xl font-bold tracking-tight mb-2">AI +</div>
-                        <div class="text-sm font-mono uppercase text-gray-500">Human Direction<br>Always</div>
+                        <div class="text-sm mono uppercase text-gray-500">Human Direction<br>Always</div>
                     </div>
                     <div class="bg-[#0A0A0A] p-8">
                         <div class="text-5xl font-bold tracking-tight mb-2">∞</div>
-                        <div class="text-sm font-mono uppercase text-gray-500">Creative<br>Possibilities</div>
+                        <div class="text-sm mono uppercase text-gray-500">Creative<br>Possibilities</div>
                     </div>
                 </div>
             </div>
@@ -180,179 +327,185 @@
     <!-- SERVICES -->
     <section id="services" class="w-full px-6 py-24">
         <div class="border-t border-black pt-4 mb-16 flex justify-between">
-            <span class="text-xs font-mono uppercase tracking-widest text-gray-500">What We Do</span>
+            <span class="text-xs mono uppercase tracking-widest text-gray-500">What We Do</span>
+            <span class="text-xs mono uppercase tracking-widest text-gray-500">04 Services</span>
         </div>
 
         <div class="space-y-0">
-            <div class="group border-t border-black/20 py-10 hover-trigger cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div class="group border-t border-black/20 py-10 hover-trigger cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-6" data-cursor="big">
                 <div class="flex items-start gap-6 flex-1">
-                    <span class="text-xs font-mono text-gray-400 pt-2">01</span>
+                    <span class="text-xs mono text-gray-400 pt-2">01</span>
                     <div>
                         <h3 class="text-2xl md:text-4xl font-bold tracking-tight group-hover:translate-x-2 transition-transform">AI Campaign Direction</h3>
                         <p class="hover-target text-gray-500 mt-2 max-w-md">Full creative direction for brand campaigns — concept, visual development, AI image and video generation, delivery at a fraction of traditional production cost and time.</p>
                     </div>
                 </div>
-                <div class="text-sm font-mono uppercase text-gray-400 md:text-right">
-                    Fashion / Beauty / Lifestyle
-                </div>
+                <div class="text-sm mono uppercase text-gray-400 md:text-right">Fashion / Beauty / Lifestyle</div>
             </div>
 
-            <div class="group border-t border-black/20 py-10 hover-trigger cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div class="group border-t border-black/20 py-10 hover-trigger cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-6" data-cursor="big">
                 <div class="flex items-start gap-6 flex-1">
-                    <span class="text-xs font-mono text-gray-400 pt-2">02</span>
+                    <span class="text-xs mono text-gray-400 pt-2">02</span>
                     <div>
                         <h3 class="text-2xl md:text-4xl font-bold tracking-tight group-hover:translate-x-2 transition-transform">Product Visual Systems</h3>
                         <p class="hover-target text-gray-500 mt-2 max-w-md">High-end AI product photography and video for e-commerce and social. Studio quality without the studio — no models, no shipping, no delays.</p>
                     </div>
                 </div>
-                <div class="text-sm font-mono uppercase text-gray-400 md:text-right">
-                    E-commerce / DTC
-                </div>
+                <div class="text-sm mono uppercase text-gray-400 md:text-right">E-commerce / DTC</div>
             </div>
 
-            <div class="group border-t border-black/20 py-10 hover-trigger cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div class="group border-t border-black/20 py-10 hover-trigger cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-6" data-cursor="big">
                 <div class="flex items-start gap-6 flex-1">
-                    <span class="text-xs font-mono text-gray-400 pt-2">03</span>
+                    <span class="text-xs mono text-gray-400 pt-2">03</span>
                     <div>
                         <h3 class="text-2xl md:text-4xl font-bold tracking-tight group-hover:translate-x-2 transition-transform">Brand Content Retainers</h3>
                         <p class="hover-target text-gray-500 mt-2 max-w-md">Monthly ongoing visual content for social media, ads, and digital channels. Consistent brand world, predictable output, always-on creative direction.</p>
                     </div>
                 </div>
-                <div class="text-sm font-mono uppercase text-gray-400 md:text-right">
-                    Social / Advertising
-                </div>
+                <div class="text-sm mono uppercase text-gray-400 md:text-right">Social / Advertising</div>
             </div>
 
-            <div class="group border-t border-t-black/20 border-b border-black/20 py-10 hover-trigger cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div class="group border-t border-t-black/20 border-b border-black/20 py-10 hover-trigger cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-6" data-cursor="big">
                 <div class="flex items-start gap-6 flex-1">
-                    <span class="text-xs font-mono text-gray-400 pt-2">04</span>
+                    <span class="text-xs mono text-gray-400 pt-2">04</span>
                     <div>
                         <h3 class="text-2xl md:text-4xl font-bold tracking-tight group-hover:translate-x-2 transition-transform">Visual Identity & Strategy</h3>
                         <p class="hover-target text-gray-500 mt-2 max-w-md">AI-assisted brand identity and visual strategy. We define your aesthetic world, build your style system, and deliver a scalable creative framework your team can run.</p>
                     </div>
                 </div>
-                <div class="text-sm font-mono uppercase text-gray-400 md:text-right">
-                    Startups / Indie Brands
-                </div>
+                <div class="text-sm mono uppercase text-gray-400 md:text-right">Startups / Indie Brands</div>
             </div>
         </div>
     </section>
 
-    <!-- WHY KOBOKU -->
-    <section class="w-full px-6 py-24 bg-white border-t border-b border-black">
-        <div class="text-center mb-20">
-            <h2 class="text-3xl md:text-5xl font-bold tracking-tight mb-4">
-                Agency quality.<br>Freelancer speed.
-            </h2>
-            <p class="text-gray-500 text-lg mt-4 max-w-xl mx-auto">The AI creative director occupies a position that simply didn't exist before. We are built for this moment.</p>
-        </div>
+    <!-- UTRECHT FEATURE BANNER — entry point to the new Netherlands section -->
+    <section class="w-full bg-[#F4F4F2] border-t border-black">
+        <a href="netherlands.html" class="block group relative overflow-hidden" data-cursor="big">
+            <div class="grid grid-cols-1 md:grid-cols-12 min-h-[60vh] md:min-h-[70vh]">
+                <!-- Left: editorial text -->
+                <div class="md:col-span-5 p-8 md:p-12 flex flex-col justify-between border-r border-black">
+                    <div class="flex justify-between items-start">
+                        <span class="mono text-xs uppercase tracking-widest text-gray-500 flex items-center">
+                            <span class="pulse-dot"></span>New — 2026
+                        </span>
+                        <span class="mono text-xs uppercase tracking-widest text-gray-500">NL / 03</span>
+                    </div>
 
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-6xl mx-auto">
-            <div class="aspect-square bg-gray-200 overflow-hidden">
-                <img src="image1.jpeg" class="w-full h-full object-cover grayscale" alt="texture 1">
+                    <div>
+                        <h2 class="text-5xl md:text-7xl font-bold tracking-tighter uppercase leading-[0.9] mb-6">
+                            Utrecht<br>
+                            <span class="serif text-gray-400 normal-case">Second</span><br>
+                            <span class="text-outline">Hand.</span>
+                        </h2>
+                        <p class="text-gray-600 max-w-md leading-relaxed mb-8">
+                            Our new editorial project: a curated field-guide to the most beautiful second-hand and vintage shops across the Netherlands — shot, directed, and indexed through the Koboku lens.
+                        </p>
+                        <div class="inline-flex items-center gap-4 mono text-sm uppercase tracking-widest group-hover:gap-6 transition-all">
+                            <span>Enter the Guide</span>
+                            <svg width="24" height="10" viewBox="0 0 24 10" fill="none">
+                                <path d="M1 5H23M23 5L19 1M23 5L19 9" stroke="currentColor" stroke-width="1.2"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <!-- Right: hero image with parallax -->
+                <div class="md:col-span-7 relative img-zoom-container bg-gray-200 min-h-[50vh] md:min-h-full">
+                    <img src="image3.jpeg" alt="Utrecht second-hand editorial" class="absolute inset-0 w-full h-full object-cover img-zoom grayscale group-hover:grayscale-0" data-parallax>
+                    <div class="absolute top-6 left-6 md:top-12 md:left-12 text-white mix-blend-difference">
+                        <span class="mono text-xs uppercase tracking-widest opacity-80">Tweedehands</span>
+                    </div>
+                    <div class="absolute bottom-6 right-6 md:bottom-12 md:right-12 text-white mix-blend-difference text-right">
+                        <span class="mono text-xs uppercase tracking-widest opacity-80 block mb-2">Amsterdam • Utrecht • Rotterdam • Den Haag</span>
+                        <h3 class="text-3xl md:text-5xl font-bold tracking-tighter">枯木 × NL</h3>
+                    </div>
+                </div>
             </div>
-            <div class="aspect-square bg-gray-200 overflow-hidden">
-                <img src="image2.jpeg" class="w-full h-full object-cover grayscale" alt="texture 2">
-            </div>
-            <div class="aspect-square bg-gray-200 overflow-hidden md:col-span-2 md:row-span-2">
-                <img src="image3.jpeg" class="w-full h-full object-cover grayscale" alt="texture 3">
-            </div>
-            <div class="aspect-square bg-[#0A0A0A] flex flex-col items-center justify-center text-[#F4F4F2] p-4 text-center">
-                <svg class="w-12 h-12 mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter">
-                    <path d="M12 2L2 22h20L12 2z"></path>
-                </svg>
-                <span class="text-xs font-mono uppercase">Koboku Studio</span>
-            </div>
-            <div class="aspect-square bg-gray-200 overflow-hidden">
-                <img src="image4.jpeg" class="w-full h-full object-cover grayscale" alt="texture 4">
-            </div>
-        </div>
+        </a>
     </section>
 
     <!-- CASE STUDIES -->
     <section class="w-full px-6 py-24">
         <div class="border-t border-black pt-4 mb-16 flex justify-between">
-            <span class="text-xs font-mono uppercase tracking-widest text-gray-500">Selected Work</span>
-            <span class="text-sm font-mono uppercase text-gray-500">In-depth</span>
+            <span class="text-xs mono uppercase tracking-widest text-gray-500">Selected Work</span>
+            <span class="text-sm mono uppercase text-gray-500">In-depth</span>
         </div>
 
-        <div class="space-y-8">
-            <div class="group border-t border-black pt-8 pb-8 cursor-pointer">
+        <div class="space-y-0">
+            <article class="group border-t border-black pt-8 pb-12 cursor-pointer" data-cursor="big">
                 <div class="flex flex-col md:flex-row justify-between items-start gap-6">
-                    <div class="w-full md:w-1/3 aspect-[4/3] overflow-hidden">
-                        <img src="sprint.jpeg" alt="Case study 1" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all">
+                    <div class="w-full md:w-1/3 aspect-[4/3] overflow-hidden img-zoom-container">
+                        <img src="campaign_volume_1.jpeg" alt="Campaign Sprint" class="w-full h-full object-cover img-zoom grayscale group-hover:grayscale-0 transition-all duration-700">
                     </div>
                     <div class="flex-1">
                         <h3 class="text-3xl md:text-4xl font-bold tracking-tight mb-4 group-hover:translate-x-4 transition-transform">Campaign Sprint</h3>
                         <p class="text-lg text-gray-600 max-w-xl mb-4">A full seasonal campaign — concept to delivery — completed in 5 days. 40 final assets across formats for a contemporary fashion label, replacing a 3-week traditional shoot.</p>
-                        <div class="flex gap-4 text-sm font-mono uppercase">
+                        <div class="flex gap-4 text-sm mono uppercase flex-wrap">
                             <span class="text-gray-400">Fashion</span>
                             <span class="text-gray-400">Campaign</span>
                             <span class="text-gray-400">Social</span>
                         </div>
                     </div>
                     <div class="text-right">
-                        <span class="text-6xl font-light text-gray-300">01</span>
+                        <span class="text-6xl serif text-gray-300">01</span>
                     </div>
                 </div>
-            </div>
+            </article>
 
-            <div class="group border-t border-black pt-8 pb-8 cursor-pointer">
+            <article class="group border-t border-black pt-8 pb-12 cursor-pointer" data-cursor="big">
                 <div class="flex flex-col md:flex-row justify-between items-start gap-6">
-                    <div class="w-full md:w-1/3 aspect-[4/3] overflow-hidden">
-                        <img src="jacq.png" alt="Case study 2" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all">
+                    <div class="w-full md:w-1/3 aspect-[4/3] overflow-hidden img-zoom-container">
+                        <img src="jacq.png" alt="Product World" class="w-full h-full object-cover img-zoom grayscale group-hover:grayscale-0 transition-all duration-700">
                     </div>
                     <div class="flex-1">
                         <h3 class="text-3xl md:text-4xl font-bold tracking-tight mb-4 group-hover:translate-x-4 transition-transform">Product World</h3>
-                        <p class="text-lg text-gray-600 max-w-xl mb-4">1 luxury product catalog for a St. Moritz based outlet brand launching across EU markets. Zero physical shoot. Studio-quality result. Total turnaround: 4 hours. They made their money back in 24hr with that investment.</p>
-                        <div class="flex gap-4 text-sm font-mono uppercase">
-                            <span class="text-gray-400">Skincare</span>
+                        <p class="text-lg text-gray-600 max-w-xl mb-4">Luxury product catalog for a St. Moritz based outlet brand launching across EU markets. Zero physical shoot. Studio-quality result. Total turnaround: 4 hours. ROI recovered within 24 hours.</p>
+                        <div class="flex gap-4 text-sm mono uppercase flex-wrap">
+                            <span class="text-gray-400">Luxury</span>
                             <span class="text-gray-400">Product</span>
                             <span class="text-gray-400">E-commerce</span>
                         </div>
                     </div>
                     <div class="text-right">
-                        <span class="text-6xl font-light text-gray-300">02</span>
+                        <span class="text-6xl serif text-gray-300">02</span>
                     </div>
                 </div>
-            </div>
+            </article>
 
-            <div class="group border-t border-b border-black pt-8 pb-8 cursor-pointer">
+            <article class="group border-t border-b border-black pt-8 pb-12 cursor-pointer" data-cursor="big">
                 <div class="flex flex-col md:flex-row justify-between items-start gap-6">
-                    <div class="w-full md:w-1/3 aspect-[4/3] overflow-hidden">
-                        <img src="brand%20retainer.jpeg" alt="Case study 3" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all">
+                    <div class="w-full md:w-1/3 aspect-[4/3] overflow-hidden img-zoom-container">
+                        <img src="brand_retainer.jpeg" alt="Brand Retainer" class="w-full h-full object-cover img-zoom grayscale group-hover:grayscale-0 transition-all duration-700">
                     </div>
                     <div class="flex-1">
                         <h3 class="text-3xl md:text-4xl font-bold tracking-tight mb-4 group-hover:translate-x-4 transition-transform">Brand Retainer</h3>
-                        <p class="text-lg text-gray-600 max-w-xl mb-4">Ongoing monthly visual content for an Florence based bespoke tailor. 30+ assets per month — photography, video, and motion — delivered with a consistent visual identity.</p>
-                        <div class="flex gap-4 text-sm font-mono uppercase">
+                        <p class="text-lg text-gray-600 max-w-xl mb-4">Ongoing monthly visual content for a Florence-based bespoke tailor. 30+ assets per month — photography, video, and motion — delivered with a consistent visual identity.</p>
+                        <div class="flex gap-4 text-sm mono uppercase flex-wrap">
                             <span class="text-gray-400">Lifestyle</span>
                             <span class="text-gray-400">Retainer</span>
                             <span class="text-gray-400">Motion</span>
                         </div>
                     </div>
                     <div class="text-right">
-                        <span class="text-6xl font-light text-gray-300">03</span>
+                        <span class="text-6xl serif text-gray-300">03</span>
                     </div>
                 </div>
-            </div>
+            </article>
         </div>
     </section>
 
     <!-- FOUNDER -->
     <section id="founder" class="w-full px-6 py-24 dark-section bg-[#0A0A0A] text-[#F4F4F2]">
         <div class="border-t border-[#F4F4F2]/20 pt-4 mb-16">
-            <span class="text-xs font-mono uppercase tracking-widest text-gray-500">The Founder</span>
+            <span class="text-xs mono uppercase tracking-widest text-gray-500">The Founder</span>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24 max-w-6xl">
-            <!-- Simone -->
             <div class="group">
                 <div class="w-full aspect-[3/4] bg-gray-800 img-zoom-container mb-8 overflow-hidden">
-                    <img src="simone%20niba.jpg" alt="Simone Niba" class="w-full h-full object-cover img-zoom grayscale group-hover:grayscale-0">
+                    <img src="simone_niba.jpg" alt="Simone Niba" class="w-full h-full object-cover img-zoom grayscale group-hover:grayscale-0">
                 </div>
                 <h3 class="text-3xl font-bold tracking-tight mb-1">Simone Niba</h3>
-                <p class="text-sm font-mono uppercase text-gray-500 mb-6">Co-Founder — Creative Director</p>
+                <p class="text-sm mono uppercase text-gray-500 mb-6">Co-Founder — Creative Director</p>
                 <p class="text-gray-400 leading-relaxed">
                     Born and raised in Florence. Graduate in Business Administration from the University of Florence. World-class kendo athlete and current member of the Italian National Team, training to compete in the 2027 Kendo World Championship in Japan.
                 </p>
@@ -361,10 +514,12 @@
                 </p>
             </div>
 
-        <div class="mt-24 border-t border-[#F4F4F2]/20 pt-16">
-            <p class="text-3xl md:text-5xl font-bold tracking-tight leading-tight max-w-4xl text-outline" style="-webkit-text-stroke: 2px #F4F4F2;">
-                "The way of the sword and the way of art are one." — Miyamoto Musashi
-            </p>
+            <div class="flex items-end">
+                <blockquote class="serif text-3xl md:text-5xl leading-tight max-w-md">
+                    "The way of the sword and the way of art are one."
+                    <footer class="mono text-sm not-italic mt-6 text-gray-500 uppercase tracking-widest">— Miyamoto Musashi</footer>
+                </blockquote>
+            </div>
         </div>
     </section>
 
@@ -376,31 +531,226 @@
             <p class="text-xl text-gray-600 mb-10 leading-relaxed">
                 We work with brands that want to move fast, think strategically, and invest in visuals that actually perform. If that sounds like you — let's talk.
             </p>
-            <a href="/cdn-cgi/l/email-protection#cfa7aaa3a3a08fa4a0ada0a4bae1a6bb" class="inline-block border border-black px-8 py-4 text-sm font-mono uppercase tracking-widest hover:bg-black hover:text-[#F4F4F2] transition-colors">
-                <span class="__cf_email__" data-cfemail="c4aca1a8a8ab84afaba6abafb1eaadb0">[&#160;info@koboku.it]</span>
+            <a href="mailto:info@koboku.it" class="inline-block border border-black px-8 py-4 text-sm mono uppercase tracking-widest hover:bg-black hover:text-[#F4F4F2] transition-colors" data-cursor="big">
+                info@koboku.it →
             </a>
         </div>
 
-        <div class="px-6 flex justify-between items-end mb-12">
+        <div class="px-6 flex justify-between items-end mb-12 flex-col md:flex-row gap-6 md:gap-0">
             <div class="text-sm font-medium text-gray-500 uppercase">
-                Studio:<br>
-                <span class="text-black text-lg md:text-xl font-bold">Florence — Tokyo</span>
+                Studios:<br>
+                <span class="text-black text-lg md:text-xl font-bold">Florence — Tokyo — Utrecht</span>
             </div>
-            <div class="text-sm font-medium text-gray-500 uppercase text-right">
+            <div class="text-sm font-medium text-gray-500 uppercase text-left md:text-right">
                 Follow:<br>
-                <a href="#" class="text-black hover:underline text-lg md:text-xl font-bold">@koboku_aistudio</a>
+                <a href="#" class="text-black hover:underline text-lg md:text-xl font-bold" data-cursor="big">@koboku_aistudio</a>
             </div>
         </div>
 
         <div class="w-full flex justify-center items-center px-4 overflow-hidden select-none pb-8">
-            <h1 class="text-massive font-black uppercase text-center w-full block tracking-tighter text-[#0A0A0A]">
+            <h1 class="text-massive font-black uppercase text-center w-full block tracking-tighter text-[#0A0A0A]" id="footer-giant">
                 KOBOKU
             </h1>
         </div>
 
-        <div class="w-full border-t border-black/20 pt-6 px-6 flex flex-col md:flex-row justify-between items-start md:items-center text-xs font-mono uppercase text-gray-500 gap-4 md:gap-0 mt-auto">
+        <div class="w-full border-t border-black/20 pt-6 px-6 flex flex-col md:flex-row justify-between items-start md:items-center text-xs mono uppercase text-gray-500 gap-4 md:gap-0 mt-auto">
             <div>©2025 Koboku Studio. All rights reserved.</div>
             <div>AI Creative Direction — Florence, Italy</div>
             <div class="flex space-x-6">
-                <a href="#" class="hover:text-black transition-colors">Instagram</a>
-                <a hre
+                <a href="#" class="hover:text-black transition-colors" data-cursor="big">Instagram</a>
+                <a href="#" class="hover:text-black transition-colors" data-cursor="big">LinkedIn</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    // ============================================================
+    // KOBOKU — Motion layer
+    // GSAP + ScrollTrigger for scroll-driven reveals
+    // Lenis for buttery smooth scroll
+    // Custom cursor, hero rotator, counters, marquee, image parallax
+    // ============================================================
+    (function() {
+        if (typeof gsap === 'undefined') return;
+        gsap.registerPlugin(ScrollTrigger);
+
+        // ---------- Lenis smooth scroll ----------
+        let lenis = null;
+        if (window.Lenis && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            lenis = new Lenis({ duration: 1.15, smoothWheel: true });
+            function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
+            requestAnimationFrame(raf);
+            lenis.on('scroll', ScrollTrigger.update);
+        }
+
+        // ---------- Hero line reveal ----------
+        gsap.to('.reveal-line > span', {
+            yPercent: 0,
+            duration: 1.1,
+            stagger: 0.12,
+            ease: 'expo.out',
+            delay: 0.1
+        });
+
+        // ---------- Generic fade-in on scroll ----------
+        gsap.utils.toArray('[data-fade]').forEach(el => {
+            gsap.from(el, {
+                y: 24, opacity: 0,
+                duration: 0.9, ease: 'power3.out',
+                scrollTrigger: { trigger: el, start: 'top 85%', once: true }
+            });
+        });
+
+        // ---------- Word-by-word reveal for big headlines ----------
+        gsap.utils.toArray('[data-reveal-words]').forEach(el => {
+            // Split into word spans if not already
+            const text = el.innerHTML;
+            const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+            const nodes = [];
+            while (walker.nextNode()) nodes.push(walker.currentNode);
+            nodes.forEach(node => {
+                const frag = document.createDocumentFragment();
+                node.nodeValue.split(/(\s+)/).forEach(chunk => {
+                    if (chunk.trim() === '') {
+                        frag.appendChild(document.createTextNode(chunk));
+                    } else {
+                        const wrap = document.createElement('span');
+                        wrap.style.display = 'inline-block';
+                        wrap.style.overflow = 'hidden';
+                        wrap.style.verticalAlign = 'top';
+                        const inner = document.createElement('span');
+                        inner.style.display = 'inline-block';
+                        inner.style.transform = 'translateY(110%)';
+                        inner.textContent = chunk;
+                        wrap.appendChild(inner);
+                        frag.appendChild(wrap);
+                    }
+                });
+                node.parentNode.replaceChild(frag, node);
+            });
+
+            const inners = el.querySelectorAll('span > span');
+            gsap.to(inners, {
+                yPercent: 0,
+                duration: 1,
+                stagger: 0.04,
+                ease: 'expo.out',
+                scrollTrigger: { trigger: el, start: 'top 80%', once: true }
+            });
+        });
+
+        // ---------- Image mask reveal + parallax ----------
+        gsap.utils.toArray('.img-reveal').forEach(el => {
+            const mask = el;
+            // animate the ::after overlay via a proxy element isn't direct — use a clip approach instead
+            const inner = el.querySelector('img');
+            gsap.fromTo(inner, { scale: 1.2, filter: 'brightness(0.4)' }, {
+                scale: 1.0, filter: 'brightness(1)',
+                duration: 1.6, ease: 'expo.out',
+                scrollTrigger: { trigger: el, start: 'top 85%', once: true }
+            });
+        });
+
+        // Parallax on images with data-parallax (subtle)
+        gsap.utils.toArray('[data-parallax]').forEach(img => {
+            gsap.fromTo(img, { yPercent: -8 }, {
+                yPercent: 8,
+                ease: 'none',
+                scrollTrigger: {
+                    trigger: img.closest('[data-parallax-wrap]') || img.parentElement,
+                    start: 'top bottom',
+                    end: 'bottom top',
+                    scrub: true
+                }
+            });
+        });
+
+        // ---------- Counters ----------
+        gsap.utils.toArray('[data-counter]').forEach(el => {
+            const end = parseFloat(el.dataset.counter);
+            const obj = { val: 0 };
+            ScrollTrigger.create({
+                trigger: el,
+                start: 'top 90%',
+                once: true,
+                onEnter: () => {
+                    gsap.to(obj, {
+                        val: end,
+                        duration: 1.6,
+                        ease: 'expo.out',
+                        onUpdate: () => { el.textContent = Math.round(obj.val); }
+                    });
+                }
+            });
+        });
+
+        // ---------- Marquee ----------
+        const marquee = document.getElementById('marquee');
+        if (marquee) {
+            const tracks = marquee.querySelectorAll('.marquee-track');
+            const totalWidth = tracks[0].scrollWidth;
+            gsap.to(tracks, {
+                x: -totalWidth,
+                duration: 30,
+                ease: 'none',
+                repeat: -1
+            });
+        }
+
+        // ---------- Hero rotator ----------
+        const rotator = document.querySelector('.rotator');
+        if (rotator) {
+            const items = Array.from(rotator.children);
+            let i = 0;
+            setInterval(() => {
+                const current = items[i];
+                i = (i + 1) % items.length;
+                const next = items[i];
+                current.classList.remove('is-active');
+                current.classList.add('is-leaving');
+                next.classList.add('is-active');
+                setTimeout(() => current.classList.remove('is-leaving'), 500);
+            }, 2800);
+        }
+
+        // ---------- Footer giant text scale pulse on scroll ----------
+        const giant = document.getElementById('footer-giant');
+        if (giant) {
+            gsap.fromTo(giant, { letterSpacing: '-0.08em' }, {
+                letterSpacing: '-0.02em',
+                ease: 'none',
+                scrollTrigger: {
+                    trigger: giant,
+                    start: 'top bottom',
+                    end: 'bottom bottom',
+                    scrub: true
+                }
+            });
+        }
+
+        // ---------- Custom cursor ----------
+        const cursor = document.getElementById('cursor');
+        if (cursor && matchMedia('(hover: hover)').matches) {
+            const pos = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+            const target = { x: pos.x, y: pos.y };
+            window.addEventListener('mousemove', e => {
+                target.x = e.clientX;
+                target.y = e.clientY;
+            });
+            gsap.ticker.add(() => {
+                pos.x += (target.x - pos.x) * 0.2;
+                pos.y += (target.y - pos.y) * 0.2;
+                cursor.style.transform = `translate(${pos.x}px, ${pos.y}px) translate(-50%, -50%)`;
+            });
+            document.querySelectorAll('[data-cursor="big"]').forEach(el => {
+                el.addEventListener('mouseenter', () => cursor.classList.add('is-big'));
+                el.addEventListener('mouseleave', () => cursor.classList.remove('is-big'));
+            });
+        }
+
+        // Refresh after everything is set up
+        ScrollTrigger.refresh();
+    })();
+    </script>
+</body>
+</html>
