@@ -4,215 +4,409 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Journal — Koboku AI Creative Studio</title>
+    <meta name="description" content="Field Notes on AI creative direction. Dispatches from Koboku Studio.">
+
     <script src="https://cdn.tailwindcss.com/3.4.17"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,700;1,9..144,300&family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
+
     <style>
-        :root {
-            --bg-color: #F4F4F2;
-            --text-color: #0A0A0A;
-        }
+        :root { --bg-color: #F4F4F2; --text-color: #0A0A0A; }
+        html, body { background-color: var(--bg-color); }
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--bg-color);
             color: var(--text-color);
             -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
         }
-        .text-huge {
-            font-size: clamp(4rem, 9vw, 12rem);
-            line-height: 0.85;
-            letter-spacing: -0.04em;
-        }
-        .text-outline {
-            color: transparent;
-            -webkit-text-stroke: 2px var(--text-color);
-        }
-        .img-zoom-container { overflow: hidden; }
-        .img-zoom { transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
-        .img-zoom-container:hover .img-zoom { transform: scale(1.05); }
+        .serif { font-family: 'Fraunces', serif; }
+        .serif-i { font-family: 'Fraunces', serif; font-style: italic; font-weight: 300; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
 
-        .post-item {
-            opacity: 0;
-            transform: translateY(16px);
-            animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        @keyframes fadeUp {
-            to { opacity: 1; transform: translateY(0); }
-        }
+        .text-huge { font-size: clamp(4rem, 9vw, 12rem); line-height: 0.85; letter-spacing: -0.04em; }
+        .text-outline { color: transparent; -webkit-text-stroke: 2px var(--text-color); }
+
+        .reveal-line { display: inline-block; overflow: hidden; vertical-align: top; }
+        .reveal-line > span { display: inline-block; transform: translateY(110%); will-change: transform; }
+
+        .img-zoom-container { overflow: hidden; }
+        .img-zoom { transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1); }
+        .img-zoom-container:hover .img-zoom { transform: scale(1.04); }
+
         .tag {
             display: inline-block;
-            padding: 2px 10px;
-            border: 1px solid #D1D5DB;
+            padding: 3px 10px;
+            border: 1px solid rgba(10,10,10,0.2);
             font-size: 10px;
-            font-family: monospace;
+            font-family: 'JetBrains Mono', monospace;
             text-transform: uppercase;
             letter-spacing: 0.1em;
             color: #6B7280;
         }
+
+        .cursor-dot {
+            position: fixed; top: 0; left: 0;
+            width: 8px; height: 8px;
+            background: var(--text-color);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            mix-blend-mode: difference;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s ease, height 0.3s ease;
+            will-change: transform;
+        }
+        .cursor-dot.is-big { width: 56px; height: 56px; background: var(--bg-color); }
+        @media (hover: none) { .cursor-dot { display: none; } }
+
+        .grain::before {
+            content: '';
+            position: fixed; inset: 0;
+            pointer-events: none;
+            z-index: 100;
+            opacity: 0.035;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+            mix-blend-mode: multiply;
+        }
+
+        .pulse-dot {
+            display: inline-block;
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #C1302C;
+            margin-right: 10px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
+        }
+
+        /* Featured post card hover — cinematic */
+        .featured-post { transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1); }
+        .featured-post:hover { transform: translateY(-4px); }
+        .featured-post .featured-image { position: relative; overflow: hidden; }
+        .featured-post .featured-image::after {
+            content: ''; position: absolute; inset: 0;
+            background: rgba(10,10,10,0);
+            transition: background 0.6s ease;
+            pointer-events: none; z-index: 2;
+        }
+        .featured-post:hover .featured-image::after { background: rgba(10,10,10,0.12); }
+        .featured-post .featured-image img { transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), filter 0.8s ease; }
+        .featured-post:hover .featured-image img { transform: scale(1.06); filter: grayscale(0%); }
+        .featured-post .featured-title { display: inline-block; transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+        .featured-post:hover .featured-title { transform: translateX(12px); }
+        .featured-post .featured-cta {
+            display: inline-block;
+            opacity: 0;
+            transform: translateX(-10px);
+            transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: #8A867D;
+            margin-top: 0.75rem;
+        }
+        .featured-post:hover .featured-cta { opacity: 1; transform: translateX(0); }
+
+        /* Page transition */
+        .page-transition {
+            position: fixed; inset: 0;
+            background: #0A0A0A;
+            z-index: 9998;
+            transform: translateY(100%);
+            pointer-events: none;
+            will-change: transform;
+        }
+        .page-transition.is-entering { animation: pageEnter 0.7s cubic-bezier(0.76, 0, 0.24, 1) forwards; }
+        .page-transition.is-leaving  { animation: pageLeave 0.8s cubic-bezier(0.76, 0, 0.24, 1) forwards; }
+        @keyframes pageEnter { 0% { transform: translateY(100%); } 100% { transform: translateY(0); } }
+        @keyframes pageLeave { 0% { transform: translateY(0); } 100% { transform: translateY(-100%); } }
+        .page-transition-label {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            color: #F4F4F2;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            opacity: 0;
+        }
+        .page-transition.is-entering .page-transition-label {
+            animation: labelFade 0.5s ease 0.2s forwards;
+        }
+        @keyframes labelFade {
+            0% { opacity: 0; transform: translate(-50%, -40%); }
+            100% { opacity: 1; transform: translate(-50%, -50%); }
+        }
+
+        .section-rule { position: relative; padding-top: 2px; }
+        .section-rule::before {
+            content: '';
+            position: absolute; top: 0; left: 0;
+            width: 0; height: 1px;
+            background: rgba(10,10,10,0.2);
+            transition: width 1.2s cubic-bezier(0.76, 0, 0.24, 1);
+        }
+        .section-rule.is-in::before { width: 100%; }
     </style>
 </head>
-<body class="w-full min-h-screen flex flex-col selection:bg-black selection:text-[#F4F4F2]">
+<body class="w-full min-h-screen flex flex-col selection:bg-black selection:text-[#F4F4F2] grain">
+
+    <div class="page-transition" id="pageTransition">
+        <span class="page-transition-label">Koboku</span>
+    </div>
+
+    <div class="cursor-dot" id="cursor"></div>
 
     <!-- NAV -->
     <nav class="fixed top-0 w-full z-50 flex justify-between items-start px-6 py-6 mix-blend-difference text-[#F4F4F2] pointer-events-none">
-        <a href="index.html" class="font-bold text-xl tracking-tighter uppercase pointer-events-auto cursor-pointer">Koboku</a>
+        <a href="index.html" class="font-bold text-xl tracking-tighter uppercase pointer-events-auto" data-cursor="big">Koboku</a>
         <div class="hidden md:flex space-x-8 text-sm font-medium uppercase tracking-wide pointer-events-auto">
-            <a href="portfolio.html" class="hover:opacity-50 transition-opacity">Work</a>
-            <a href="about.html" class="hover:opacity-50 transition-opacity">Studio</a>
-            <a href="index.html#services" class="hover:opacity-50 transition-opacity">Services</a>
-            <a href="index.html#founders" class="hover:opacity-50 transition-opacity">Founders</a>
-            <a href="blog.html" class="hover:opacity-50 transition-opacity">Journal</a>
+            <a href="portfolio.html" class="hover:opacity-50 transition-opacity" data-cursor="big">Work</a>
+            <a href="about.html" class="hover:opacity-50 transition-opacity" data-cursor="big">Studio</a>
+            <a href="index.html#services" class="hover:opacity-50 transition-opacity" data-cursor="big">Services</a>
+            <a href="netherlands.html" class="hover:opacity-50 transition-opacity flex items-center" data-cursor="big">
+                <span class="pulse-dot"></span>Utrecht
+            </a>
+            <a href="blog.html" class="opacity-50" data-cursor="big">Journal</a>
         </div>
         <div class="text-sm font-medium uppercase tracking-wide pointer-events-auto">
-            <a href="index.html#contact" class="hover:opacity-50 transition-opacity">Contact</a>
+            <a href="index.html#contact" class="hover:opacity-50 transition-opacity" data-cursor="big">Contact</a>
         </div>
     </nav>
 
     <!-- HEADER -->
     <header class="w-full pt-40 pb-16 px-6">
         <div class="border-b border-black/20 pb-6 mb-12 flex justify-between items-end">
-            <span class="text-xs font-mono uppercase tracking-widest text-gray-500">The Journal</span>
-            <span class="text-xs font-mono uppercase tracking-widest text-gray-500">Thoughts & Perspectives</span>
+            <span class="text-xs mono uppercase tracking-widest text-gray-500">The Journal</span>
+            <span class="text-xs mono uppercase tracking-widest text-gray-500">Field Notes — Vol. 01</span>
         </div>
         <h1 class="text-huge font-bold uppercase mb-8">
-            Field<br>
-            <span class="text-outline">Notes.</span>
+            <span class="reveal-line"><span>Field</span></span><br>
+            <span class="reveal-line"><span class="text-outline">Notes.</span></span>
         </h1>
-        <p class="text-xl md:text-2xl font-medium max-w-2xl leading-tight tracking-tight text-gray-500 mt-8">
+        <p class="text-xl md:text-2xl font-medium max-w-2xl leading-tight tracking-tight text-gray-500 mt-8" data-fade>
             Dispatches on AI creative direction, visual strategy, and what it means to build brand worlds at speed.
         </p>
     </header>
 
-    <!-- FEATURED POST -->
+    <!-- FEATURED POST — Beyond the Rack -->
     <section class="px-6 pb-16">
-        <div class="post-item group cursor-pointer" style="animation-delay:0.05s">
-            <div class="w-full h-[55vh] img-zoom-container relative bg-gray-200 mb-8">
-                <img src="https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?q=80&w=2574&auto=format&fit=crop" alt="Featured post" class="w-full h-full object-cover img-zoom grayscale group-hover:grayscale-0 transition-all duration-700">
-                <div class="absolute top-6 left-6">
-                    <span class="tag bg-[#F4F4F2]">Featured</span>
+        <div class="border-t border-black pt-4 mb-10 flex justify-between items-end">
+            <span class="text-xs mono uppercase tracking-widest text-gray-500">Featured</span>
+            <span class="text-xs mono uppercase tracking-widest text-gray-500">April 2026 — 7 min read</span>
+        </div>
+
+        <a href="netherlands.html" class="featured-post block group" data-cursor="big">
+            <div class="featured-image w-full aspect-[21/10] md:aspect-[21/9] bg-gray-200 mb-8 relative">
+                <img src="assets/sundae-04-stools.png" alt="Beyond the Rack — Sundae Social" class="w-full h-full object-cover grayscale">
+                <div class="absolute top-6 left-6 z-10">
+                    <span class="tag bg-[#F4F4F2]/90 backdrop-blur">Featured</span>
+                </div>
+                <div class="absolute top-6 right-6 z-10 mono text-[10px] uppercase tracking-widest text-[#F4F4F2] mix-blend-difference">
+                    <span class="pulse-dot"></span>Live editorial
                 </div>
             </div>
             <div class="flex flex-col md:flex-row justify-between items-start gap-6">
-                <div class="max-w-2xl">
-                    <div class="flex gap-4 mb-4">
+                <div class="max-w-3xl">
+                    <div class="flex gap-3 mb-6 flex-wrap">
                         <span class="tag">AI Direction</span>
-                        <span class="tag">Strategy</span>
+                        <span class="tag">Vintage</span>
+                        <span class="tag">Netherlands</span>
+                        <span class="tag">Campaign Bible</span>
                     </div>
-                    <h2 class="text-3xl md:text-5xl font-bold tracking-tight leading-tight mb-4 group-hover:translate-x-2 transition-transform">
-                        Why Every Brand Will Have an AI Creative Director by 2027
+                    <h2 class="featured-title text-3xl md:text-6xl font-bold tracking-tight leading-[0.95] mb-5 uppercase">
+                        Beyond the Rack:<br>
+                        <span class="serif-i text-gray-500 normal-case">Mastering AI Creative Direction<br>for the Modern Vintage Shop.</span>
                     </h2>
-                    <p class="text-gray-500 text-lg leading-relaxed">
-                        The shift isn't about replacing human creativity — it's about multiplying it. We've spent the last year building the workflows, and here's what we've learned about where this is all heading.
+                    <p class="text-gray-600 text-lg leading-relaxed max-w-2xl">
+                        "Vintage" is no longer a category — it's a mood. Inside the <span class="serif-i">Analog Slacker</span> universe: curated apathy, a moss-and-ochre palette, a 16mm fisheye, and Kodak Tri-X 400. The full campaign bible, from concept to shop index.
                     </p>
+                    <span class="featured-cta">Read the editorial →</span>
                 </div>
-                <div class="text-right text-sm font-mono text-gray-400 whitespace-nowrap pt-2">
-                    <div>March 2025</div>
-                    <div class="mt-1">8 min read</div>
+                <div class="text-right text-xs mono uppercase tracking-widest text-gray-400 whitespace-nowrap pt-2 hidden md:block">
+                    <div>Vol. 03 — 2026</div>
+                    <div class="mt-1">Koboku × NL</div>
                 </div>
             </div>
-        </div>
+        </a>
     </section>
 
-    <!-- POST LIST -->
-    <section class="px-6 pb-32">
-        <div class="border-t border-black pt-4 mb-12">
-            <span class="text-xs font-mono uppercase tracking-widest text-gray-500">All Posts</span>
+    <!-- ARCHIVE — minimal placeholder -->
+    <section class="px-6 pb-32 pt-16">
+        <div class="border-t border-black pt-4 mb-12 flex justify-between items-end">
+            <span class="text-xs mono uppercase tracking-widest text-gray-500">Archive</span>
+            <span class="text-xs mono uppercase tracking-widest text-gray-500">More soon</span>
         </div>
 
-        <div class="space-y-0">
-
-            <!-- Post 2 -->
-            <div class="post-item group border-t border-black/10 py-10 cursor-pointer flex flex-col md:flex-row gap-8 items-start" style="animation-delay:0.1s">
-                <div class="w-full md:w-64 aspect-[4/3] img-zoom-container flex-shrink-0">
-                    <img src="https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=2874&auto=format&fit=crop" alt="Post 2" class="w-full h-full object-cover img-zoom grayscale group-hover:grayscale-0 transition-all duration-700">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl">
+            <div class="border-t border-black/15 pt-8" data-fade>
+                <div class="flex gap-3 mb-4">
+                    <span class="tag">Coming</span>
                 </div>
-                <div class="flex-1">
-                    <div class="flex gap-3 mb-3">
-                        <span class="tag">Workflow</span>
-                        <span class="tag">Production</span>
-                    </div>
-                    <h3 class="text-2xl md:text-3xl font-bold tracking-tight mb-3 group-hover:translate-x-2 transition-transform">From Brief to 40+ Assets in Days: Our Campaign Process</h3>
-                    <p class="text-gray-500 leading-relaxed max-w-xl">A detailed look at how we ran a full catalog photoshoot for Auren Collection — from the strategy session to the final delivery folder. No fluff, just the actual process.</p>
-                    <div class="mt-4 text-xs font-mono text-gray-400">February 2025 — 6 min read</div>
-                </div>
+                <h3 class="serif-i text-3xl md:text-4xl leading-[1.05] text-gray-400 mb-3">
+                    The Sword and the Studio: how martial arts shapes our creative approach.
+                </h3>
+                <div class="mono text-xs uppercase text-gray-400">Summer 2026</div>
             </div>
-
-            <!-- Post 3 -->
-            <div class="post-item group border-t border-black/10 py-10 cursor-pointer flex flex-col md:flex-row gap-8 items-start" style="animation-delay:0.15s">
-                <div class="w-full md:w-64 aspect-[4/3] img-zoom-container flex-shrink-0">
-                    <img src="https://images.unsplash.com/photo-1604871000636-074fa5117945?q=80&w=2787&auto=format&fit=crop" alt="Post 3" class="w-full h-full object-cover img-zoom grayscale group-hover:grayscale-0 transition-all duration-700">
+            <div class="border-t border-black/15 pt-8" data-fade>
+                <div class="flex gap-3 mb-4">
+                    <span class="tag">Coming</span>
                 </div>
-                <div class="flex-1">
-                    <div class="flex gap-3 mb-3">
-                        <span class="tag">Brand</span>
-                        <span class="tag">Identity</span>
-                    </div>
-                    <h3 class="text-2xl md:text-3xl font-bold tracking-tight mb-3 group-hover:translate-x-2 transition-transform">What Makes an AI-Generated Image Feel Luxury?</h3>
-                    <p class="text-gray-500 leading-relaxed max-w-xl">The technical answer is easy. The strategic answer is harder. We break down the visual codes that separate premium AI output from generic content.</p>
-                    <div class="mt-4 text-xs font-mono text-gray-400">January 2025 — 5 min read</div>
-                </div>
+                <h3 class="serif-i text-3xl md:text-4xl leading-[1.05] text-gray-400 mb-3">
+                    What makes an AI-generated image feel luxury? A technical answer and a strategic one.
+                </h3>
+                <div class="mono text-xs uppercase text-gray-400">Summer 2026</div>
             </div>
-
-            <!-- Post 4 -->
-            <div class="post-item group border-t border-black/10 py-10 cursor-pointer flex flex-col md:flex-row gap-8 items-start" style="animation-delay:0.2s">
-                <div class="w-full md:w-64 aspect-[4/3] img-zoom-container flex-shrink-0">
-                    <img src="https://images.unsplash.com/photo-1614729939124-032f0b56c9ce?q=80&w=2670&auto=format&fit=crop" alt="Post 4" class="w-full h-full object-cover img-zoom grayscale group-hover:grayscale-0 transition-all duration-700">
-                </div>
-                <div class="flex-1">
-                    <div class="flex gap-3 mb-3">
-                        <span class="tag">Kendo</span>
-                        <span class="tag">Philosophy</span>
-                    </div>
-                    <h3 class="text-2xl md:text-3xl font-bold tracking-tight mb-3 group-hover:translate-x-2 transition-transform">The Sword and the Studio: How Martial Arts Shapes Our Creative Approach</h3>
-                    <p class="text-gray-500 leading-relaxed max-w-xl">Discipline, repetition, precision under pressure. The lessons of kendo apply directly to how we run projects and how we think about visual direction.</p>
-                    <div class="mt-4 text-xs font-mono text-gray-400">December 2024 — 7 min read</div>
-                </div>
-            </div>
-
-            <!-- Post 5 -->
-            <div class="post-item group border-t border-b border-black/10 py-10 cursor-pointer flex flex-col md:flex-row gap-8 items-start" style="animation-delay:0.25s">
-                <div class="w-full md:w-64 aspect-[4/3] img-zoom-container flex-shrink-0">
-                    <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop" alt="Post 5" class="w-full h-full object-cover img-zoom grayscale group-hover:grayscale-0 transition-all duration-700">
-                </div>
-                <div class="flex-1">
-                    <div class="flex gap-3 mb-3">
-                        <span class="tag">Industry</span>
-                        <span class="tag">Opinion</span>
-                    </div>
-                    <h3 class="text-2xl md:text-3xl font-bold tracking-tight mb-3 group-hover:translate-x-2 transition-transform">The Creative Agency Is Not Dead — It's Just Changing Shape</h3>
-                    <p class="text-gray-500 leading-relaxed max-w-xl">Everyone is saying agencies are finished. We disagree. Here's what we think actually survives, and what should be left behind.</p>
-                    <div class="mt-4 text-xs font-mono text-gray-400">November 2024 — 4 min read</div>
-                </div>
-            </div>
-
         </div>
+
+        <p class="mt-16 mono text-xs uppercase tracking-widest text-gray-400">
+            The Journal is quiet on purpose. We publish only when we have something worth saying.
+        </p>
     </section>
 
     <!-- NEWSLETTER -->
     <section class="bg-[#0A0A0A] text-[#F4F4F2] px-6 py-24">
         <div class="border-t border-[#F4F4F2]/20 pt-6 mb-12">
-            <span class="text-xs font-mono uppercase tracking-widest text-gray-500">Stay in the loop</span>
+            <span class="text-xs mono uppercase tracking-widest text-gray-500">Stay in the loop</span>
         </div>
         <div class="max-w-2xl">
-            <h2 class="text-4xl md:text-5xl font-bold tracking-tighter uppercase mb-6">The Journal,<br>in your inbox.</h2>
-            <p class="text-gray-400 text-lg mb-10 leading-relaxed">New posts on AI creative direction, brand strategy, and the studio's perspective — when we have something worth saying. No noise.</p>
-            <div class="flex flex-col md:flex-row gap-4">
-                <input type="email" placeholder="your@email.com" class="flex-1 bg-transparent border border-[#F4F4F2]/30 px-5 py-4 text-sm font-mono text-[#F4F4F2] placeholder-gray-600 focus:outline-none focus:border-[#F4F4F2]">
-                <button class="border border-[#F4F4F2] px-8 py-4 text-sm font-mono uppercase tracking-widest hover:bg-[#F4F4F2] hover:text-[#0A0A0A] transition-colors whitespace-nowrap">Subscribe</button>
-            </div>
+            <h2 class="text-4xl md:text-5xl font-bold tracking-tighter uppercase mb-6" data-reveal-words>The Journal,<br>in your inbox.</h2>
+            <p class="text-gray-400 text-lg mb-10 leading-relaxed" data-fade>
+                New field notes on AI creative direction, brand strategy, and the studio's perspective — when we have something worth saying. No noise.
+            </p>
+            <form class="flex flex-col md:flex-row gap-4" onsubmit="event.preventDefault(); alert('Thanks — we\\'ll be in touch.');">
+                <input type="email" placeholder="your@email.com" class="flex-1 bg-transparent border border-[#F4F4F2]/30 px-5 py-4 text-sm mono text-[#F4F4F2] placeholder-gray-600 focus:outline-none focus:border-[#F4F4F2]" required>
+                <button class="border border-[#F4F4F2] px-8 py-4 text-sm mono uppercase tracking-widest hover:bg-[#F4F4F2] hover:text-[#0A0A0A] transition-colors whitespace-nowrap" data-cursor="big">Subscribe</button>
+            </form>
         </div>
     </section>
 
     <!-- FOOTER -->
-    <footer class="w-full bg-[#F4F4F2] border-t border-black/20 px-6 flex flex-col md:flex-row justify-between items-start md:items-center text-xs font-mono uppercase text-gray-500 gap-4 py-6">
+    <footer class="w-full bg-[#F4F4F2] border-t border-black/20 px-6 flex flex-col md:flex-row justify-between items-start md:items-center text-xs mono uppercase text-gray-500 gap-4 py-6">
         <div>©2025 Koboku Studio. All rights reserved.</div>
         <div>AI Creative Direction — Florence, Italy</div>
         <div class="flex space-x-6">
-            <a href="#" class="hover:text-black transition-colors">Instagram</a>
-            <a href="#" class="hover:text-black transition-colors">LinkedIn</a>
+            <a href="#" class="hover:text-black transition-colors" data-cursor="big">Instagram</a>
+            <a href="#" class="hover:text-black transition-colors" data-cursor="big">LinkedIn</a>
         </div>
     </footer>
 
+    <script>
+    (function() {
+        if (typeof gsap === 'undefined') return;
+        gsap.registerPlugin(ScrollTrigger);
+
+        const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        let lenis = null;
+        if (window.Lenis && !reduceMotion) {
+            lenis = new Lenis({ duration: 1.15, smoothWheel: true });
+            (function raf(t){ lenis.raf(t); requestAnimationFrame(raf); })();
+            lenis.on('scroll', ScrollTrigger.update);
+        }
+
+        gsap.to('.reveal-line > span', {
+            yPercent: 0, duration: 1.1, stagger: 0.15, ease: 'expo.out', delay: 0.15
+        });
+
+        gsap.utils.toArray('[data-fade]').forEach(el => {
+            gsap.from(el, {
+                y: 24, opacity: 0, duration: 0.9, ease: 'power3.out',
+                scrollTrigger: { trigger: el, start: 'top 85%', once: true }
+            });
+        });
+
+        gsap.utils.toArray('[data-reveal-words]').forEach(el => {
+            const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+            const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
+            nodes.forEach(node => {
+                if (!node.nodeValue.trim()) return;
+                const frag = document.createDocumentFragment();
+                node.nodeValue.split(/(\s+)/).forEach(chunk => {
+                    if (chunk.trim() === '') frag.appendChild(document.createTextNode(chunk));
+                    else {
+                        const w = document.createElement('span');
+                        w.style.display='inline-block'; w.style.overflow='hidden'; w.style.verticalAlign='top';
+                        const inner = document.createElement('span');
+                        inner.style.display='inline-block'; inner.style.transform='translateY(110%)';
+                        inner.textContent = chunk;
+                        w.appendChild(inner); frag.appendChild(w);
+                    }
+                });
+                node.parentNode.replaceChild(frag, node);
+            });
+            const inners = el.querySelectorAll('span > span');
+            gsap.to(inners, {
+                yPercent: 0, duration: 1, stagger: 0.04, ease: 'expo.out',
+                scrollTrigger: { trigger: el, start: 'top 82%', once: true }
+            });
+        });
+
+        const cursor = document.getElementById('cursor');
+        if (cursor && matchMedia('(hover: hover)').matches) {
+            const pos = { x: innerWidth/2, y: innerHeight/2 };
+            const target = { ...pos };
+            addEventListener('mousemove', e => { target.x = e.clientX; target.y = e.clientY; });
+            gsap.ticker.add(() => {
+                pos.x += (target.x - pos.x) * 0.2;
+                pos.y += (target.y - pos.y) * 0.2;
+                cursor.style.transform = `translate(${pos.x}px, ${pos.y}px) translate(-50%, -50%)`;
+            });
+            document.querySelectorAll('[data-cursor="big"]').forEach(el => {
+                el.addEventListener('mouseenter', () => cursor.classList.add('is-big'));
+                el.addEventListener('mouseleave', () => cursor.classList.remove('is-big'));
+            });
+        }
+
+        const pageTransition = document.getElementById('pageTransition');
+        if (pageTransition) {
+            pageTransition.classList.add('is-entering');
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    pageTransition.classList.remove('is-entering');
+                    pageTransition.classList.add('is-leaving');
+                    setTimeout(() => {
+                        pageTransition.classList.remove('is-leaving');
+                        pageTransition.style.transform = 'translateY(100%)';
+                    }, 800);
+                }, 100);
+            });
+            document.querySelectorAll('a[href]').forEach(link => {
+                const href = link.getAttribute('href');
+                if (!href) return;
+                if (href.startsWith('#')) return;
+                if (href.startsWith('mailto:') || href.startsWith('tel:')) return;
+                if (href.startsWith('http') && !href.includes(location.host)) return;
+                if (link.target === '_blank') return;
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    pageTransition.style.transform = '';
+                    pageTransition.classList.remove('is-leaving');
+                    pageTransition.classList.add('is-entering');
+                    setTimeout(() => { window.location.href = href; }, 650);
+                });
+            });
+        }
+
+        gsap.utils.toArray('section').forEach(sec => {
+            sec.classList.add('section-rule');
+            ScrollTrigger.create({
+                trigger: sec, start: 'top 90%', once: true,
+                onEnter: () => sec.classList.add('is-in')
+            });
+        });
+
+        ScrollTrigger.refresh();
+    })();
+    </script>
 </body>
 </html>
