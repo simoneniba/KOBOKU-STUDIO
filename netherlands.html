@@ -162,9 +162,57 @@
             color: white;
             mix-blend-mode: difference;
         }
+
+        /* Page transition overlay — consistent with index.html */
+        .page-transition {
+            position: fixed;
+            inset: 0;
+            background: #0A0A0A;
+            z-index: 9998;
+            transform: translateY(100%);
+            pointer-events: none;
+            will-change: transform;
+        }
+        .page-transition.is-entering {
+            animation: pageEnter 0.7s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+        }
+        .page-transition.is-leaving {
+            animation: pageLeave 0.8s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+        }
+        @keyframes pageEnter {
+            0% { transform: translateY(100%); }
+            100% { transform: translateY(0); }
+        }
+        @keyframes pageLeave {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-100%); }
+        }
+        .page-transition-label {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            color: #DEC9A7;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            opacity: 0;
+        }
+        .page-transition.is-entering .page-transition-label {
+            animation: labelFade 0.5s ease 0.2s forwards;
+        }
+        @keyframes labelFade {
+            0% { opacity: 0; transform: translate(-50%, -40%); }
+            100% { opacity: 1; transform: translate(-50%, -50%); }
+        }
     </style>
 </head>
 <body class="w-full min-h-screen grain selection:bg-[#1A1714] selection:text-[#DEC9A7]">
+
+    <!-- Page transition overlay -->
+    <div class="page-transition" id="pageTransition">
+        <span class="page-transition-label">Koboku</span>
+    </div>
 
     <div class="cursor-dot" id="cursor"></div>
 
@@ -899,6 +947,39 @@
             document.querySelectorAll('[data-cursor="big"]').forEach(el => {
                 el.addEventListener('mouseenter', () => cursor.classList.add('is-big'));
                 el.addEventListener('mouseleave', () => cursor.classList.remove('is-big'));
+            });
+        }
+
+        // ---------- Page transitions ----------
+        const pageTransition = document.getElementById('pageTransition');
+        if (pageTransition) {
+            // Reveal: sweep out on load
+            pageTransition.classList.add('is-entering');
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    pageTransition.classList.remove('is-entering');
+                    pageTransition.classList.add('is-leaving');
+                    setTimeout(() => {
+                        pageTransition.classList.remove('is-leaving');
+                        pageTransition.style.transform = 'translateY(100%)';
+                    }, 800);
+                }, 100);
+            });
+            // Intercept internal link clicks
+            document.querySelectorAll('a[href]').forEach(link => {
+                const href = link.getAttribute('href');
+                if (!href) return;
+                if (href.startsWith('#')) return;
+                if (href.startsWith('mailto:') || href.startsWith('tel:')) return;
+                if (href.startsWith('http') && !href.includes(location.host)) return;
+                if (link.target === '_blank') return;
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    pageTransition.style.transform = '';
+                    pageTransition.classList.remove('is-leaving');
+                    pageTransition.classList.add('is-entering');
+                    setTimeout(() => { window.location.href = href; }, 650);
+                });
             });
         }
 
