@@ -170,8 +170,11 @@
         .hero-stack {
             position: relative;
             width: 100%;
-            /* Tall scroll area: 5 frames × ~100vh each, clamped to stay reasonable */
+            /* Height = 5 frames × viewport-height. Use svh everywhere so
+               desktop and mobile (where URL bar eats 100vh) stay aligned.
+               Fallback to vh for older browsers that don't know svh. */
             height: 500vh;
+            height: 500svh;
         }
         .hero-stage {
             position: sticky;
@@ -252,6 +255,73 @@
         /* When the hero has been fully scrolled past, hide the overlay */
         .hero-overlay { transition: opacity 0.4s ease; }
         .hero-overlay.is-gone { opacity: 0; pointer-events: none; visibility: hidden; }
+
+        /* =====================================================================
+           IMAGE MARQUEE — infinite loop of campaign stills below the hero
+        ===================================================================== */
+        .img-marquee {
+            width: 100%;
+            overflow: hidden;
+            background: #0A0A0A;
+            position: relative;
+        }
+        .img-marquee-track {
+            display: flex;
+            gap: 1.25rem;
+            padding: 0 0.625rem;
+            will-change: transform;
+            width: max-content; /* keep children on a single line */
+        }
+        .img-marquee-item {
+            flex: 0 0 auto;
+            width: 70vw;
+            max-width: 560px;
+            aspect-ratio: 16 / 10;
+            overflow: hidden;
+            position: relative;
+        }
+        @media (min-width: 768px) {
+            .img-marquee-item { width: 38vw; }
+        }
+        .img-marquee-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1), filter 1s ease;
+            filter: grayscale(100%);
+        }
+        .img-marquee-item:hover img {
+            transform: scale(1.05);
+            filter: grayscale(0%);
+        }
+        .img-marquee-caption {
+            position: absolute;
+            bottom: 12px; left: 14px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #F4F4F2;
+            mix-blend-mode: difference;
+            opacity: 0.75;
+        }
+        /* Edge fades so the loop point is less obvious */
+        .img-marquee::before, .img-marquee::after {
+            content: '';
+            position: absolute;
+            top: 0; bottom: 0;
+            width: 80px;
+            z-index: 3;
+            pointer-events: none;
+        }
+        .img-marquee::before {
+            left: 0;
+            background: linear-gradient(to right, #0A0A0A, transparent);
+        }
+        .img-marquee::after {
+            right: 0;
+            background: linear-gradient(to left, #0A0A0A, transparent);
+        }
     </style>
 </head>
 <body class="w-full min-h-screen flex flex-col selection:bg-black selection:text-[#F4F4F2] grain">
@@ -340,6 +410,50 @@
             </div>
         </div>
     </header>
+
+    <!-- =====================================================================
+         IMAGE MARQUEE — infinite loop of additional campaign stills
+         Paused on hover. Grayscale by default, color on hover.
+         Doubled tracks for seamless loop.
+    ===================================================================== -->
+    <section class="img-marquee" id="imgMarquee" aria-label="Koboku — campaign stills">
+        <div class="img-marquee-track" id="imgMarqueeTrack">
+            <!-- Original set -->
+            <figure class="img-marquee-item">
+                <img src="image1.jpeg" alt="Koboku campaign still 01" loading="lazy">
+                <figcaption class="img-marquee-caption">Still 01</figcaption>
+            </figure>
+            <figure class="img-marquee-item">
+                <img src="image2.jpeg" alt="Koboku campaign still 02" loading="lazy">
+                <figcaption class="img-marquee-caption">Still 02</figcaption>
+            </figure>
+            <figure class="img-marquee-item">
+                <img src="image3.jpeg" alt="Koboku campaign still 03" loading="lazy">
+                <figcaption class="img-marquee-caption">Still 03</figcaption>
+            </figure>
+            <figure class="img-marquee-item">
+                <img src="image4.jpeg" alt="Koboku campaign still 04" loading="lazy">
+                <figcaption class="img-marquee-caption">Still 04</figcaption>
+            </figure>
+            <!-- Duplicated for seamless loop — decorative, hidden from assistive tech -->
+            <figure class="img-marquee-item" aria-hidden="true">
+                <img src="image1.jpeg" alt="" loading="lazy">
+                <figcaption class="img-marquee-caption">Still 01</figcaption>
+            </figure>
+            <figure class="img-marquee-item" aria-hidden="true">
+                <img src="image2.jpeg" alt="" loading="lazy">
+                <figcaption class="img-marquee-caption">Still 02</figcaption>
+            </figure>
+            <figure class="img-marquee-item" aria-hidden="true">
+                <img src="image3.jpeg" alt="" loading="lazy">
+                <figcaption class="img-marquee-caption">Still 03</figcaption>
+            </figure>
+            <figure class="img-marquee-item" aria-hidden="true">
+                <img src="image4.jpeg" alt="" loading="lazy">
+                <figcaption class="img-marquee-caption">Still 04</figcaption>
+            </figure>
+        </div>
+    </section>
 
     <!-- CHAPTER HEADING — the tagline the hero used to carry.
          Now it plays as the first beat after the reel ends. -->
@@ -945,6 +1059,58 @@
                 duration: 30,
                 ease: 'none',
                 repeat: -1
+            });
+        }
+
+        // ---------- Image Marquee (infinite) ----------
+        // We duplicate the set of images in HTML and animate the whole track by exactly
+        // half its total width. Because of the duplication, the halfway point looks
+        // identical to the start, so the loop is seamless.
+        const imgMarquee = document.getElementById('imgMarquee');
+        const imgTrack = document.getElementById('imgMarqueeTrack');
+        if (imgMarquee && imgTrack) {
+            let imgMarqueeTween = null;
+            const startMarquee = () => {
+                if (imgMarqueeTween) imgMarqueeTween.kill();
+                const halfWidth = imgTrack.scrollWidth / 2;
+                gsap.set(imgTrack, { x: 0 });
+                imgMarqueeTween = gsap.to(imgTrack, {
+                    x: -halfWidth,
+                    duration: 45, // slow and editorial, not frantic
+                    ease: 'none',
+                    repeat: -1
+                });
+            };
+
+            // Wait for images to load so scrollWidth is accurate
+            const imgs = imgTrack.querySelectorAll('img');
+            let loaded = 0;
+            const total = imgs.length;
+            const onReady = () => {
+                loaded++;
+                if (loaded >= total) startMarquee();
+            };
+            imgs.forEach(img => {
+                if (img.complete) onReady();
+                else {
+                    img.addEventListener('load', onReady, { once: true });
+                    img.addEventListener('error', onReady, { once: true });
+                }
+            });
+
+            // Pause on hover for accessibility
+            imgMarquee.addEventListener('mouseenter', () => {
+                if (imgMarqueeTween) imgMarqueeTween.timeScale(0.1);
+            });
+            imgMarquee.addEventListener('mouseleave', () => {
+                if (imgMarqueeTween) imgMarqueeTween.timeScale(1);
+            });
+
+            // Recalculate on window resize
+            let resizeTimer;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(startMarquee, 250);
             });
         }
 
