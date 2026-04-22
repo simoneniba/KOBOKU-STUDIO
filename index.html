@@ -163,6 +163,95 @@
             0%, 100% { opacity: 1; transform: scale(1); }
             50% { opacity: 0.4; transform: scale(0.85); }
         }
+
+        /* =====================================================================
+           HERO STACK — full-bleed scroll-driven image reel
+        ===================================================================== */
+        .hero-stack {
+            position: relative;
+            width: 100%;
+            /* Tall scroll area: 5 frames × ~100vh each, clamped to stay reasonable */
+            height: 500vh;
+        }
+        .hero-stage {
+            position: sticky;
+            top: 0;
+            width: 100%;
+            height: 100vh;
+            height: 100svh;
+            overflow: hidden;
+            background: #0A0A0A;
+        }
+        .hero-frame {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            will-change: opacity, transform;
+        }
+        .hero-frame:first-child { opacity: 1; } /* first paint — no flash */
+        .hero-frame img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            will-change: transform;
+            transform: scale(1.05);
+        }
+
+        /* Fixed overlay UI */
+        .hero-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 40;
+            pointer-events: none;
+        }
+        .hero-topbar {
+            position: absolute;
+            top: 6rem; /* sits under the nav which is at py-6 */
+            left: 1.5rem; right: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            border-top: 1px solid rgba(244,244,242,0.35);
+            padding-top: 0.9rem;
+            flex-wrap: wrap;
+        }
+        .hero-bottombar {
+            position: absolute;
+            left: 1.5rem; right: 1.5rem;
+            bottom: 2rem;
+        }
+        .hero-rail {
+            position: absolute;
+            right: 1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 45;
+        }
+        .hero-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: rgba(244,244,242,0.35);
+            transition: background 0.4s ease, transform 0.4s ease;
+            mix-blend-mode: difference;
+        }
+        .hero-dot.is-active {
+            background: rgba(244,244,242,1);
+            transform: scale(1.6);
+        }
+        @media (max-width: 768px) {
+            .hero-rail { display: none; }
+            .hero-topbar { top: 5rem; font-size: 9px; }
+        }
+
+        /* When the hero has been fully scrolled past, hide the overlay */
+        .hero-overlay { transition: opacity 0.4s ease; }
+        .hero-overlay.is-gone { opacity: 0; pointer-events: none; visibility: hidden; }
     </style>
 </head>
 <body class="w-full min-h-screen flex flex-col selection:bg-black selection:text-[#F4F4F2] grain">
@@ -189,10 +278,76 @@
         </div>
     </nav>
 
-    <div class="h-24 md:hidden"></div>
+    <!-- =====================================================================
+         HERO — full-bleed scroll-driven image stack
+         Five Italian campaign frames cross-fade as the user scrolls the hero.
+         The header bar (Koboku + year + caption) lives above everything
+         with mix-blend-difference for legibility against any frame.
+    ===================================================================== -->
+    <header class="hero-stack" id="heroStack" aria-label="Koboku — campaign reel">
+        <!-- Stage where images layer on top of each other -->
+        <div class="hero-stage">
+            <figure class="hero-frame" data-frame="0" data-caption="Puglia — June" data-index="01">
+                <img src="assets/hero-01-port.png" alt="Koboku campaign — port, Puglia">
+            </figure>
+            <figure class="hero-frame" data-frame="1" data-caption="Porto Cesareo — afternoon" data-index="02">
+                <img src="assets/hero-02-dock.png" alt="Koboku campaign — dock">
+            </figure>
+            <figure class="hero-frame" data-frame="2" data-caption="Salento — dry fields" data-index="03">
+                <img src="assets/hero-03-collar.png" alt="Koboku campaign — collar">
+            </figure>
+            <figure class="hero-frame" data-frame="3" data-caption="Toscana — villa, golden hour" data-index="04">
+                <img src="assets/hero-04-villa.png" alt="Koboku campaign — Tuscan villa">
+            </figure>
+            <figure class="hero-frame" data-frame="4" data-caption="Firenze — vicolo, espresso" data-index="05">
+                <img src="assets/hero-05-espresso.png" alt="Koboku campaign — espresso, Florence">
+            </figure>
+        </div>
 
-    <!-- HERO -->
-    <header class="w-full pt-32 pb-16 md:pt-48 md:pb-32 px-6 flex flex-col justify-end">
+        <!-- Fixed overlay UI: top meta bar + bottom caption + progress dots -->
+        <div class="hero-overlay pointer-events-none">
+            <!-- Top bar: reads Koboku → year → territory -->
+            <div class="hero-topbar mix-blend-difference text-[#F4F4F2] mono text-[10px] md:text-xs uppercase tracking-widest">
+                <span>Koboku — AI Creative Direction</span>
+                <span class="hidden md:inline">Reel / 2025 — 2026</span>
+                <span>Florence — Tokyo — Utrecht</span>
+            </div>
+
+            <!-- Bottom left: frame counter + caption -->
+            <div class="hero-bottombar mix-blend-difference text-[#F4F4F2]">
+                <div class="flex items-end justify-between gap-6">
+                    <div>
+                        <span class="mono text-[10px] md:text-xs uppercase tracking-widest opacity-75 block mb-2">
+                            <span id="heroIndex">01</span> / 05
+                        </span>
+                        <span id="heroCaption" class="serif italic text-xl md:text-3xl leading-tight block max-w-md">
+                            Puglia — June
+                        </span>
+                    </div>
+                    <div class="mono text-[10px] md:text-xs uppercase tracking-widest opacity-75 text-right hidden md:block">
+                        Scroll<br>↓
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right rail: progress dots -->
+            <div class="hero-rail" aria-hidden="true">
+                <span class="hero-dot is-active"></span>
+                <span class="hero-dot"></span>
+                <span class="hero-dot"></span>
+                <span class="hero-dot"></span>
+                <span class="hero-dot"></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- CHAPTER HEADING — the tagline the hero used to carry.
+         Now it plays as the first beat after the reel ends. -->
+    <section class="w-full px-6 pt-24 pb-16 md:pt-32 md:pb-20">
+        <div class="border-t border-black/20 pt-6 mb-12 flex justify-between items-end">
+            <span class="text-xs mono uppercase tracking-widest text-gray-500">01 — Studio</span>
+            <span class="text-xs mono uppercase tracking-widest text-gray-500">Florence — Tokyo — <span class="text-black">Utrecht</span></span>
+        </div>
         <h1 class="text-huge font-bold uppercase mb-8 max-w-[95%]">
             <span class="reveal-line"><span>Where the</span></span><br>
             <span class="reveal-line"><span class="text-gray-400 serif">Sword Meets</span></span><br>
@@ -213,7 +368,7 @@
                 Florence — Tokyo — <span class="text-black font-semibold">Utrecht</span>
             </div>
         </div>
-    </header>
+    </section>
 
     <!-- FEATURED WORK -->
     <section id="work" class="w-full px-6 py-12">
@@ -582,6 +737,102 @@
             requestAnimationFrame(raf);
             lenis.on('scroll', ScrollTrigger.update);
         }
+
+        // ---------- HERO STACK — scroll-driven cross-fade ----------
+        (function heroStack() {
+            const stack = document.getElementById('heroStack');
+            if (!stack) return;
+            const frames = stack.querySelectorAll('.hero-frame');
+            const dots = document.querySelectorAll('.hero-rail .hero-dot');
+            const captionEl = document.getElementById('heroCaption');
+            const indexEl = document.getElementById('heroIndex');
+            const overlay = stack.querySelector('.hero-overlay');
+            const count = frames.length;
+
+            // Each frame occupies 1/count of the total scroll distance of the stack.
+            // We fade between frames using scrub'd opacity, and push a subtle
+            // Ken-Burns scale on the active image.
+            frames.forEach((frame, i) => {
+                const img = frame.querySelector('img');
+
+                // Opacity timeline: frame i is visible from progress i/count to (i+1)/count
+                // We do this with two tweens — fade in, then fade out — except
+                // frame 0 never fades in (it starts visible) and the last never fades out.
+                const segStart = i / count;
+                const segEnd = (i + 1) / count;
+
+                // Fade-in (skip for frame 0)
+                if (i > 0) {
+                    gsap.fromTo(frame,
+                        { opacity: 0 },
+                        {
+                            opacity: 1,
+                            ease: 'none',
+                            scrollTrigger: {
+                                trigger: stack,
+                                start: `top+=${segStart * 100}% top`,
+                                end: `top+=${(segStart + 0.05) * 100}% top`,
+                                scrub: true
+                            }
+                        }
+                    );
+                }
+                // Fade-out (skip for last frame so it holds)
+                if (i < count - 1) {
+                    gsap.to(frame, {
+                        opacity: 0,
+                        ease: 'none',
+                        scrollTrigger: {
+                            trigger: stack,
+                            start: `top+=${(segEnd - 0.02) * 100}% top`,
+                            end: `top+=${segEnd * 100}% top`,
+                            scrub: true
+                        }
+                    });
+                }
+
+                // Ken-Burns scale: gently from 1.08 to 1.0 across the frame's segment.
+                gsap.fromTo(img,
+                    { scale: 1.08 },
+                    {
+                        scale: 1.0,
+                        ease: 'none',
+                        scrollTrigger: {
+                            trigger: stack,
+                            start: `top+=${segStart * 100}% top`,
+                            end: `top+=${segEnd * 100}% top`,
+                            scrub: true
+                        }
+                    }
+                );
+            });
+
+            // Active-frame detection → updates caption, dot, index number
+            let currentIdx = -1;
+            ScrollTrigger.create({
+                trigger: stack,
+                start: 'top top',
+                end: 'bottom bottom',
+                onUpdate: (self) => {
+                    const idx = Math.min(count - 1, Math.floor(self.progress * count));
+                    if (idx === currentIdx) return;
+                    currentIdx = idx;
+                    dots.forEach((d, i) => d.classList.toggle('is-active', i === idx));
+                    const activeFrame = frames[idx];
+                    if (captionEl) captionEl.textContent = activeFrame.dataset.caption;
+                    if (indexEl) indexEl.textContent = activeFrame.dataset.index;
+                }
+            });
+
+            // Hide the overlay once we scroll past the hero stack
+            ScrollTrigger.create({
+                trigger: stack,
+                start: 'bottom bottom',
+                end: 'bottom top',
+                onEnter: () => overlay && overlay.classList.add('is-gone'),
+                onLeaveBack: () => overlay && overlay.classList.remove('is-gone')
+            });
+        })();
 
         // ---------- Hero line reveal ----------
         gsap.to('.reveal-line > span', {
